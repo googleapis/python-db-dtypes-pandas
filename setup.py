@@ -29,7 +29,7 @@ description = "Pandas Data Types for SQL systems (BigQuery, Spanner)"
 release_status = "Development Status :: 4 - Beta"
 
 dependencies = [
-    "packaging >= 14.3",
+    "packaging >= 17.0",
     "pandas >= 0.24.2, < 2.0dev",
     "pyarrow >= 3.0.0, < 6.0dev",
     "numpy >= 1.16.6, < 2.0dev",
