@@ -7,4 +7,4 @@
 packaging==14.3
 pandas==0.24.2
 pyarrow==3.0.0
-numpy==1.12.0
+numpy==1.16.6
