@@ -65,6 +65,7 @@ place_before(
     "nox.options.stop_on_first_error = True",
 )
 
+# There are no system tests for this package.
 old_sessions = """
     "unit",
     "system",
@@ -76,8 +77,6 @@ new_sessions = """
     "lint",
     "unit",
     "cover",
-    "system",
-    "compliance",
 """
 
 s.replace(["noxfile.py"], old_sessions, new_sessions)
