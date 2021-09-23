@@ -156,7 +156,7 @@ html_theme = "alabaster"
 html_theme_options = {
     "description": "Google Cloud Client Libraries for db-dtypes",
     "github_user": "googleapis",
-    "github_repo": "python-bigquery-sqlalchemy",
+    "github_repo": "python-db-dtypes-pandas",
     "github_banner": True,
     "font_family": "'Roboto', Georgia, sans",
     "head_font_family": "'Roboto', Georgia, serif",
