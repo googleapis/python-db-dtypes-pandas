@@ -30,9 +30,9 @@ release_status = "Development Status :: 4 - Beta"
 
 dependencies = [
     "packaging >= 14.3",
-    "pandas",
-    "pyarrow",
-    "numpy",
+    "pandas >= 0.24.2, < 2.0dev",
+    "pyarrow >= 3.0.0, < 6.0dev",
+    "numpy >= 1.12.0, < 2.0dev",
 ]
 
 package_root = os.path.abspath(os.path.dirname(__file__))
