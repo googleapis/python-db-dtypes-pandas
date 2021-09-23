@@ -70,7 +70,7 @@ setup(
         "Topic :: Database :: Front-Ends",
     ],
     platforms="Posix; MacOS X; Windows",
-    install_requires=[],
+    install_requires=dependencies,
     python_requires=">=3.6, <3.10",
     tests_require=["pytest"],
 )
