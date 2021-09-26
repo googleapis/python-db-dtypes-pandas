@@ -171,9 +171,13 @@ def test_timearray_comparisons(
 
     # Bad shape
     for bad_shape in ([], [1, 2, 3]):
-        with pytest.raises(TypeError, match="Can't compare arrays with different shapes"):
+        with pytest.raises(
+            TypeError, match="Can't compare arrays with different shapes"
+        ):
             comparisons[op](left, np.array(bad_shape))
-        with pytest.raises(TypeError, match="Can't compare arrays with different shapes"):
+        with pytest.raises(
+            TypeError, match="Can't compare arrays with different shapes"
+        ):
             complements[op](left, np.array(bad_shape))
 
     # Bad items
@@ -470,8 +474,10 @@ def test_asdatetime(dtype, same):
 )
 def test_astimedelta(dtype):
     t = "01:02:03.123456"
-    expect = pd.to_timedelta([t]).to_numpy().astype(
-        "timedelta64[ns]" if dtype == "timedelta" else dtype
+    expect = (
+        pd.to_timedelta([t])
+        .to_numpy()
+        .astype("timedelta64[ns]" if dtype == "timedelta" else dtype)
     )
 
     a = _cls("time")([t, None])
