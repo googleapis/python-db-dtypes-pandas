@@ -171,18 +171,10 @@ def test_timearray_comparisons(
 
     # Bad shape
     for bad_shape in ([], [1, 2, 3]):
-        if op == "==":
-            assert not comparisons[op](left, np.array(bad_shape))
-            assert complements[op](left, np.array(bad_shape))
-        else:
-            with pytest.raises(
-                ValueError, match="operands could not be broadcast together",
-            ):
-                comparisons[op](left, np.array(bad_shape))
-            with pytest.raises(
-                ValueError, match="operands could not be broadcast together",
-            ):
-                complements[op](left, np.array(bad_shape))
+        with pytest.raises(TypeError, match="Can't compare arrays with different shapes"):
+            comparisons[op](left, np.array(bad_shape))
+        with pytest.raises(TypeError, match="Can't compare arrays with different shapes"):
+            complements[op](left, np.array(bad_shape))
 
     # Bad items
     for bad_items in (
