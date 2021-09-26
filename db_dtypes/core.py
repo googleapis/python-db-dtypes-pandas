@@ -170,18 +170,14 @@ class BaseDatetimeArray(
         result = pandas.core.nanops.nanall(self._ndarray, axis=axis, skipna=skipna)
         return result
 
-    def min(
-        self, *, axis: Optional[int] = None, skipna: bool = True, **kwargs
-    ):
+    def min(self, *, axis: Optional[int] = None, skipna: bool = True, **kwargs):
         pandas.compat.numpy.function.validate_min((), kwargs)
         result = pandas.core.nanops.nanmin(
             values=self._ndarray, axis=axis, mask=self.isna(), skipna=skipna
         )
         return self._box_func(result)
 
-    def max(
-        self, *, axis: Optional[int] = None, skipna: bool = True, **kwargs
-    ):
+    def max(self, *, axis: Optional[int] = None, skipna: bool = True, **kwargs):
         pandas.compat.numpy.function.validate_max((), kwargs)
         result = pandas.core.nanops.nanmax(
             values=self._ndarray, axis=axis, mask=self.isna(), skipna=skipna
