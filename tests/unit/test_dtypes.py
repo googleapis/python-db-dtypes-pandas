@@ -63,6 +63,7 @@ def eq_na(a1, a2):
     nna2 = pd.notna(a2)
     return np.array_equal(nna1, nna2) and np.array_equal(a1[nna1], a2[nna2])
 
+
 @pytest.fixture(autouse=True)
 def register_dtype():
     import db_dtypes  # noqa
