@@ -478,7 +478,7 @@ def test_asdatetime(dtype, same):
 )
 def test_astimedelta(dtype):
     t = "01:02:03.123456"
-    expect = pd.to_timedelta([t]).array.astype(
+    expect = pd.to_timedelta([t]).to_numpy().astype(
         "timedelta64[ns]" if dtype == "timedelta" else dtype
     )
 
