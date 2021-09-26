@@ -69,7 +69,7 @@ class TimeArray(core.BaseDatetimeArray):
             h, m, s = map(float, scalar.split(":"))
             s, us = divmod(s, 1)
             return datetime.datetime(
-                1970, 1, 1, int(h), int(m), int(s), int(us * 1000000)
+                1970, 1, 1, int(h), int(m), int(s), int(us * 1_000_000)
             )
         else:
             raise TypeError("Invalid value type", scalar)
