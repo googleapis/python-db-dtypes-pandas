@@ -17,7 +17,6 @@ from typing import Any, Optional, Sequence
 import numpy
 import pandas
 from pandas._libs import NaT
-from pandas._typing import Scalar
 import pandas.compat.numpy.function
 import pandas.core.algorithms
 import pandas.core.arrays
@@ -173,7 +172,7 @@ class BaseDatetimeArray(
 
     def min(
         self, *, axis: Optional[int] = None, skipna: bool = True, **kwargs
-    ) -> Scalar:
+    ):
         pandas.compat.numpy.function.validate_min((), kwargs)
         result = pandas.core.nanops.nanmin(
             values=self._ndarray, axis=axis, mask=self.isna(), skipna=skipna
@@ -182,7 +181,7 @@ class BaseDatetimeArray(
 
     def max(
         self, *, axis: Optional[int] = None, skipna: bool = True, **kwargs
-    ) -> Scalar:
+    ):
         pandas.compat.numpy.function.validate_max((), kwargs)
         result = pandas.core.nanops.nanmax(
             values=self._ndarray, axis=axis, mask=self.isna(), skipna=skipna
