@@ -535,7 +535,10 @@ def test_min_max_median(dtype):
     assert empty.min(skipna=False) is None
     assert empty.max(skipna=False) is None
     if pandas_release >= (1, 2):
-        assert empty.median() is None
+        with pytest.warns(RuntimeWarning, match="empty slice"):
+            # It's weird that we get the warning here, and not
+            # below. :/
+            assert empty.median() is None
         assert empty.median(skipna=False) is None
 
     a = _make_one(dtype)
