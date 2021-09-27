@@ -624,14 +624,10 @@ def test_date_sub():
 
 
 @pytest.mark.parametrize(
-    "value, expected",
-    [
-        ("1", datetime.time(1)),
-        ("1:2", datetime.time(1,2)),
-        ],
-    )
+    "value, expected", [("1", datetime.time(1)), ("1:2", datetime.time(1, 2)),],
+)
 def test_short_time_parsing(value, expected):
-    assert _cls('time')([value])[0] == expected
+    assert _cls("time")([value])[0] == expected
 
 
 @pytest.mark.parametrize(
@@ -647,11 +643,11 @@ def test_short_time_parsing(value, expected):
         ("1:2:99", "second must be in 0[.][.]59"),
         ("1:99", "minute must be in 0[.][.]59"),
         ("99", "hour must be in 0[.][.]23"),
-        ],
-    )
+    ],
+)
 def test_bad_time_parsing(value, error):
     with pytest.raises(ValueError, match=error):
-        _cls('time')([value])
+        _cls("time")([value])
 
 
 @pytest.mark.parametrize(
@@ -668,8 +664,8 @@ def test_bad_time_parsing(value, error):
         ("2021-2-99", "day is out of range for month"),
         ("2021-99-1", "month must be in 1[.][.]12"),
         ("10000-1-1", "year 10000 is out of range"),
-        ],
-    )
+    ],
+)
 def test_bad_date_parsing(value, error):
     with pytest.raises(ValueError, match=error):
-        _cls('date')([value])
+        _cls("date")([value])
