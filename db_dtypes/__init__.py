@@ -65,9 +65,8 @@ class TimeArray(core.BaseDatetimeArray):
     def _datetime(
         cls,
         scalar,
-        match=re.compile(
-            r"\s*(\d+)(?::(\d+)(:\d+(?:[.]\d+)?)?)?\s*$").match,
-        ):
+        match=re.compile(r"\s*(\d+)(?::(\d+)(:\d+(?:[.]\d+)?)?)?\s*$").match,
+    ):
         if isinstance(scalar, datetime.time):
             return datetime.datetime.combine(cls._epoch, scalar)
         elif isinstance(scalar, str):
@@ -136,9 +135,8 @@ class DateArray(core.BaseDatetimeArray):
 
     @staticmethod
     def _datetime(
-        scalar,
-        match=re.compile(r"\s*(\d+)-(\d+)-(\d+)\s*$").match,
-        ):
+        scalar, match=re.compile(r"\s*(\d+)-(\d+)-(\d+)\s*$").match,
+    ):
         if isinstance(scalar, datetime.date):
             return datetime.datetime(scalar.year, scalar.month, scalar.day)
         elif isinstance(scalar, str):
