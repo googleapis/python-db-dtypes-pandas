@@ -624,7 +624,7 @@ def test_date_sub():
 
 
 @pytest.mark.parametrize(
-    "value, expected", [("1", datetime.time(1)), ("1:2", datetime.time(1, 2)),],
+    "value, expected", [("1", datetime.time(1)), ("1:2", datetime.time(1, 2))],
 )
 def test_short_time_parsing(value, expected):
     assert _cls("time")([value])[0] == expected
