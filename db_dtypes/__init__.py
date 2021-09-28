@@ -16,6 +16,7 @@ Pandas Data Types for SQL systems (BigQuery, Spanner)
 """
 
 import datetime
+import re
 
 import numpy
 import packaging.version
@@ -64,15 +65,33 @@ class TimeArray(core.BaseDatetimeArray):
     _npepoch = numpy.datetime64(_epoch)
 
     @classmethod
-    def _datetime(cls, scalar):
+    def _datetime(
+        cls,
+        scalar,
+        match_fn=re.compile(
+            r"\s*(?P<hour>\d+)(?::(?P<minute>\d+)(?::(?P<second>\d+(?:[.]\d+)?)?)?)?\s*$"
+        ).match,
+    ):
         if isinstance(scalar, datetime.time):
             return datetime.datetime.combine(cls._epoch, scalar)
         elif isinstance(scalar, str):
             # iso string
-            h, m, s = map(float, scalar.split(":"))
-            s, us = divmod(s, 1)
+            match = match_fn(scalar)
+            if not match:
+                raise ValueError(f"Bad time string: {repr(scalar)}")
+
+            hour = match.group("hour")
+            minute = match.group("minute")
+            second = match.group("second")
+            second, microsecond = divmod(float(second if second else 0), 1)
             return datetime.datetime(
-                1970, 1, 1, int(h), int(m), int(s), int(us * 1000000)
+                1970,
+                1,
+                1,
+                int(hour),
+                int(minute if minute else 0),
+                int(second),
+                int(microsecond * 1_000_000),
             )
         else:
             raise TypeError("Invalid value type", scalar)
@@ -134,12 +153,20 @@ class DateArray(core.BaseDatetimeArray):
     dtype = DateDtype()
 
     @staticmethod
-    def _datetime(scalar):
+    def _datetime(
+        scalar,
+        match_fn=re.compile(r"\s*(?P<year>\d+)-(?P<month>\d+)-(?P<day>\d+)\s*$").match,
+    ):
         if isinstance(scalar, datetime.date):
             return datetime.datetime(scalar.year, scalar.month, scalar.day)
         elif isinstance(scalar, str):
-            # iso string
-            return datetime.datetime(*map(int, scalar.split("-")))
+            match = match_fn(scalar)
+            if not match:
+                raise ValueError(f"Bad date string: {repr(scalar)}")
+            year = int(match.group("year"))
+            month = int(match.group("month"))
+            day = int(match.group("day"))
+            return datetime.datetime(year, month, day)
         else:
             raise TypeError("Invalid value type", scalar)
 
