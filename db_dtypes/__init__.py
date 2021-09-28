@@ -19,6 +19,7 @@ import datetime
 import re
 
 import numpy
+import packaging.version
 import pandas
 import pandas.compat.numpy.function
 import pandas.core.algorithms
@@ -35,6 +36,8 @@ from db_dtypes import core
 
 date_dtype_name = "date"
 time_dtype_name = "time"
+
+pandas_release = packaging.version.parse(pandas.__version__).release
 
 
 @pandas.core.dtypes.dtypes.register_extension_dtype
@@ -104,6 +107,11 @@ class TimeArray(core.BaseDatetimeArray):
             return deltas.astype(dtype, copy=False)
         else:
             return super().astype(dtype, copy=copy)
+
+    if pandas_release < (1,):
+
+        def to_numpy(self):
+            return self.astype("object")
 
     def __arrow_array__(self, type=None):
         return pyarrow.array(
