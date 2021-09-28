@@ -68,20 +68,30 @@ class TimeArray(core.BaseDatetimeArray):
     def _datetime(
         cls,
         scalar,
-        match=re.compile(r"\s*(\d+)(?::(\d+)(:\d+(?:[.]\d+)?)?)?\s*$").match,
+        match_fn=re.compile(
+            r"\s*(?P<hour>\d+)(?::(?P<minute>\d+)(?::(?P<second>\d+(?:[.]\d+)?)?)?)?\s*$"
+        ).match,
     ):
         if isinstance(scalar, datetime.time):
             return datetime.datetime.combine(cls._epoch, scalar)
         elif isinstance(scalar, str):
             # iso string
-            m = match(scalar)
-            if not m:
+            match = match_fn(scalar)
+            if not match:
                 raise ValueError(f"Bad time string: {repr(scalar)}")
 
-            h, m, s = m.groups()
-            s, us = divmod(float(s[1:] if s else 0), 1)
+            hour = match.group("hour")
+            minute = match.group("minute")
+            second = match.group("second")
+            second, microsecond = divmod(float(second if second else 0), 1)
             return datetime.datetime(
-                1970, 1, 1, int(h), int(m if m else 0), int(s), int(us * 1_000_000)
+                1970,
+                1,
+                1,
+                int(hour),
+                int(minute if minute else 0),
+                int(second),
+                int(microsecond * 1_000_000),
             )
         else:
             raise TypeError("Invalid value type", scalar)
@@ -110,8 +120,8 @@ class TimeArray(core.BaseDatetimeArray):
 
     if pandas_release < (1,):
 
-        def to_numpy(self):
-            return self.astype("object")
+        def to_numpy(self, dtype="object"):
+            return self.astype(dtype)
 
     def __arrow_array__(self, type=None):
         return pyarrow.array(
@@ -143,15 +153,19 @@ class DateArray(core.BaseDatetimeArray):
 
     @staticmethod
     def _datetime(
-        scalar, match=re.compile(r"\s*(\d+)-(\d+)-(\d+)\s*$").match,
+        scalar,
+        match_fn=re.compile(r"\s*(?P<year>\d+)-(?P<month>\d+)-(?P<day>\d+)\s*$").match,
     ):
         if isinstance(scalar, datetime.date):
             return datetime.datetime(scalar.year, scalar.month, scalar.day)
         elif isinstance(scalar, str):
-            m = match(scalar)
-            if not m:
+            match = match_fn(scalar)
+            if not match:
                 raise ValueError(f"Bad date string: {repr(scalar)}")
-            return datetime.datetime(*map(int, m.groups()))
+            year = int(match.group("year"))
+            month = int(match.group("month"))
+            day = int(match.group("day"))
+            return datetime.datetime(year, month, day)
         else:
             raise TypeError("Invalid value type", scalar)
 
