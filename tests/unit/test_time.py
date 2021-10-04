@@ -32,6 +32,7 @@ import db_dtypes  # noqa
         ("0:0:0.0", datetime.time(0)),
         ("0:0:0.000000", datetime.time(0)),
         ("00:00:00", datetime.time(0, 0, 0)),
+        ("  00:00:00  ", datetime.time(0, 0, 0)),
         # Short values
         ("1", datetime.time(1)),
         ("23", datetime.time(23)),
@@ -42,8 +43,7 @@ import db_dtypes  # noqa
         # Non-octal values.
         ("08:08:08", datetime.time(8, 8, 8)),
         ("09:09:09", datetime.time(9, 9, 9)),
-        # Fractional seconds
-        # Values that can cause rounding problems if cast to float. See:
+        # Fractional seconds can cause rounding problems if cast to float. See:
         # https://github.com/googleapis/python-db-dtypes-pandas/issues/18
         ("0:0:59.876543", datetime.time(0, 0, 59, 876543)),
         ("01:01:01.010101", datetime.time(1, 1, 1, 10101)),
