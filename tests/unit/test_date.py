@@ -12,11 +12,33 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import datetime
+
 import pandas
 import pytest
 
 # To register the types.
 import db_dtypes  # noqa
+
+
+@pytest.mark.parametrize(
+    "value, expected",
+    [
+        # Min/Max values for pandas.Timestamp.
+        ("1677-09-22", datetime.date(1677, 9, 22)),
+        ("2262-04-11", datetime.date(2262, 4, 11)),
+        # Typical "zero" values.
+        ("1900-01-01", datetime.date(1900, 1, 1)),
+        ("1970-01-01", datetime.date(1970, 1, 1)),
+        # Assorted values.
+        ("1993-10-31", datetime.date(1993, 10, 31)),
+        ("2012-02-29", datetime.date(2012, 2, 29)),
+        ("2021-12-17", datetime.date(2021, 12, 17)),
+        ("2038-01-19", datetime.date(2038, 1, 19)),
+    ],
+)
+def test_date_parsing(value, expected):
+    assert pandas.Series([value], dtype="date")[0] == expected
 
 
 @pytest.mark.parametrize(
@@ -35,6 +57,6 @@ import db_dtypes  # noqa
         ("10000-1-1", "year 10000 is out of range"),
     ],
 )
-def test_bad_date_parsing(value, error):
+def test_date_parsing_errors(value, error):
     with pytest.raises(ValueError, match=error):
         pandas.Series([value], dtype="date")

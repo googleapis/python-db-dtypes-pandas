@@ -31,6 +31,7 @@ import db_dtypes  # noqa
         ("0:0:0.", datetime.time(0)),
         ("0:0:0.0", datetime.time(0)),
         ("0:0:0.000000", datetime.time(0)),
+        ("00:00:00", datetime.time(0, 0, 0)),
         # Short values
         ("1", datetime.time(1)),
         ("23", datetime.time(23)),
@@ -38,13 +39,21 @@ import db_dtypes  # noqa
         ("23:59", datetime.time(23, 59)),
         ("1:2:3", datetime.time(1, 2, 3)),
         ("23:59:59", datetime.time(23, 59, 59)),
+        # Non-octal values.
+        ("08:08:08", datetime.time(8, 8, 8)),
+        ("09:09:09", datetime.time(9, 9, 9)),
         # Fractional seconds
         # Values that can cause rounding problems if cast to float. See:
         # https://github.com/googleapis/python-db-dtypes-pandas/issues/18
+        ("0:0:59.876543", datetime.time(0, 0, 59, 876543)),
+        ("01:01:01.010101", datetime.time(1, 1, 1, 10101)),
+        ("09:09:09.090909", datetime.time(9, 9, 9, 90909)),
+        ("11:11:11.111111", datetime.time(11, 11, 11, 111111)),
         ("19:16:23.987654", datetime.time(19, 16, 23, 987654)),
         # Microsecond precision
+        ("00:00:00.000001", datetime.time(0, 0, 0, 1)),
         ("23:59:59.999999", datetime.time(23, 59, 59, 999_999)),
-        # TODO: Don't truncate nanosecond precision values
+        # TODO: Support nanosecond precision values without truncation.
         # https://github.com/googleapis/python-db-dtypes-pandas/issues/19
         ("0:0:0.000001001", datetime.time(0, 0, 0, 1)),
         ("23:59:59.999999000", datetime.time(23, 59, 59, 999_999)),
