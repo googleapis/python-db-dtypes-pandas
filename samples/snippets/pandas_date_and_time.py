@@ -20,7 +20,7 @@ def pandas_date_and_time():
     import pandas as pd
     import db_dtypes  # noqa import to register dtypes
 
-    dates = pd.Series([datetime.date(2021, 9, 17), "2021-9-18"], dtype="date")
+    dates = pd.Series([datetime.date(2021, 9, 17), "2021-9-18"], dtype="dbdate")
 
     # [END bigquery_pandas_date_create]
     # [START bigquery_pandas_date_as_datetime]
@@ -43,7 +43,7 @@ def pandas_date_and_time():
     # [END bigquery_pandas_date_add_offset]
     # [START bigquery_pandas_time_create]
 
-    times = pd.Series([datetime.time(1, 2, 3, 456789), "12:00:00.6"], dtype="time")
+    times = pd.Series([datetime.time(1, 2, 3, 456789), "12:00:00.6"], dtype="dbtime")
 
     # [END bigquery_pandas_time_create]
     # [START bigquery_pandas_time_as_timedelta]
