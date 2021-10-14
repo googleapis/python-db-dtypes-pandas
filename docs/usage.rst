@@ -74,7 +74,7 @@ Combine a date :class:`~pandas.Series` with a time :class:`~pandas.Series` to
 create a ``datetime64`` :class:`~pandas.Series`.
 
    .. literalinclude:: samples/snippets/pandas_date_and_time.py
-   :language: python
-   :dedent: 4
-   :start-after: [START bigquery_pandas_combine_date_time]
-   :end-before: [END bigquery_pandas_combine_date_time]
+      :language: python
+      :dedent: 4
+      :start-after: [START bigquery_pandas_combine_date_time]
+      :end-before: [END bigquery_pandas_combine_date_time]
