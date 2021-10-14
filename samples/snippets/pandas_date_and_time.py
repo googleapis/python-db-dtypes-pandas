@@ -30,7 +30,7 @@ def pandas_date_and_time():
     # [END bigquery_pandas_date_as_datetime]
     # [START bigquery_pandas_date_sub]
 
-    dates2 = pd.Series(["2021-1-1", "2021-1-2"], dtype="date")
+    dates2 = pd.Series(["2021-1-1", "2021-1-2"], dtype="dbdate")
     diffs = dates - dates2
 
     # [END bigquery_pandas_date_sub]
