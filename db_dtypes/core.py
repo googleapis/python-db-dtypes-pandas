@@ -17,6 +17,7 @@ from typing import Any, Optional, Sequence
 import numpy
 import pandas
 from pandas._libs import NaT
+import pandas.api.extensions
 import pandas.compat.numpy.function
 import pandas.core.algorithms
 import pandas.core.arrays
@@ -32,7 +33,7 @@ from db_dtypes import pandas_backports
 pandas_release = pandas_backports.pandas_release
 
 
-class BaseDatetimeDtype(pandas.core.dtypes.base.ExtensionDtype):
+class BaseDatetimeDtype(pandas.api.extensions.ExtensionDtype):
     na_value = NaT
     kind = "o"
     names = None
