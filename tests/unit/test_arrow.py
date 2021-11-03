@@ -185,4 +185,4 @@ def test_from_arrow(pyarrow_array: pyarrow.Array, expected: pandas.Series):
     record_batch = pyarrow.RecordBatch.from_arrays([pyarrow_array], ["test_col"])
     dataframe = record_batch.to_pandas(date_as_object=False, types_mapper=types_mapper)
     series = dataframe["test_col"]
-    pandas.testing.assert_extension_array_equal(series, expected)
+    pandas.testing.assert_series_equal(series, expected, check_names=False)

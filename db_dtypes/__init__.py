@@ -17,6 +17,7 @@ Pandas Data Types for SQL systems (BigQuery, Spanner)
 
 import datetime
 import re
+from typing import Union
 
 import numpy
 import packaging.version
@@ -52,6 +53,13 @@ class TimeDtype(core.BaseDatetimeDtype):
     def construct_array_type(self):
         return TimeArray
 
+    @staticmethod
+    def __from_arrow__(
+        array: Union[pyarrow.Array, pyarrow.ChunkedArray]
+    ) -> "TimeArray":
+        # TODO: Consider a more efficient conversion to "M8[ns]" numpy array.
+        return TimeArray(array)
+
 
 class TimeArray(core.BaseDatetimeArray):
     """
@@ -75,7 +83,13 @@ class TimeArray(core.BaseDatetimeArray):
             r"(?:\.(?P<fraction>\d*))?)?)?\s*$"
         ).match,
     ):
-        if isinstance(scalar, datetime.time):
+        # Convert pyarrow values to datetime.time.
+        if isinstance(scalar, (pyarrow.Time32Scalar, pyarrow.Time64Scalar)):
+            scalar = scalar.as_py()
+
+        if scalar is None:
+            return None
+        elif isinstance(scalar, datetime.time):
             return datetime.datetime.combine(cls._epoch, scalar)
         elif isinstance(scalar, str):
             # iso string
@@ -146,6 +160,13 @@ class DateDtype(core.BaseDatetimeDtype):
     def construct_array_type(self):
         return DateArray
 
+    @staticmethod
+    def __from_arrow__(
+        array: Union[pyarrow.Array, pyarrow.ChunkedArray]
+    ) -> "DateArray":
+        # TODO: Consider a more efficient conversion to "M8[ns]" numpy array.
+        return DateArray(array)
+
 
 class DateArray(core.BaseDatetimeArray):
     """
@@ -161,7 +182,13 @@ class DateArray(core.BaseDatetimeArray):
         scalar,
         match_fn=re.compile(r"\s*(?P<year>\d+)-(?P<month>\d+)-(?P<day>\d+)\s*$").match,
     ):
-        if isinstance(scalar, datetime.date):
+        # Convert pyarrow values to datetime.date.
+        if isinstance(scalar, (pyarrow.Date32Scalar, pyarrow.Date64Scalar)):
+            scalar = scalar.as_py()
+
+        if scalar is None:
+            return None
+        elif isinstance(scalar, datetime.date):
             return datetime.datetime(scalar.year, scalar.month, scalar.day)
         elif isinstance(scalar, str):
             match = match_fn(scalar)

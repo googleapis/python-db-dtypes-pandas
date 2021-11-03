@@ -61,10 +61,7 @@ class BaseDatetimeArray(
 
     @classmethod
     def __ndarray(cls, scalars):
-        return numpy.array(
-            [None if scalar is None else cls._datetime(scalar) for scalar in scalars],
-            "M8[ns]",
-        )
+        return numpy.array([cls._datetime(scalar) for scalar in scalars], "M8[ns]",)
 
     @classmethod
     def _from_sequence(cls, scalars, *, dtype=None, copy=False):
