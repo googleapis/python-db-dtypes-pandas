@@ -30,6 +30,7 @@ import pandas.core.dtypes.dtypes
 import pandas.core.dtypes.generic
 import pandas.core.nanops
 import pyarrow
+import pyarrow.compute
 
 from db_dtypes.version import __version__
 from db_dtypes import core
@@ -37,6 +38,9 @@ from db_dtypes import core
 
 date_dtype_name = "dbdate"
 time_dtype_name = "dbtime"
+_EPOCH = datetime.datetime(1970, 1, 1)
+_NPEPOCH = numpy.datetime64(_EPOCH)
+_PAEPOCH = pyarrow.scalar(_EPOCH, pyarrow.timestamp("ns"))
 
 pandas_release = packaging.version.parse(pandas.__version__).release
 
@@ -57,8 +61,21 @@ class TimeDtype(core.BaseDatetimeDtype):
     def __from_arrow__(
         array: Union[pyarrow.Array, pyarrow.ChunkedArray]
     ) -> "TimeArray":
-        # TODO: Consider a more efficient conversion to "M8[ns]" numpy array.
-        return TimeArray(array)
+        # We can't call combine_chunks on an empty array, so short-circuit the
+        # rest of the function logic for this special case.
+        if len(array) == 0:
+            return TimeArray(numpy.array([], dtype="datetime64[ns]"))
+
+        # We can't cast to timestamp("ns"), but we time64("ns") has the same
+        # memory layout: 64-bit integers representing the number of nanoseconds
+        # since the datetime epoch (midnight 1970-01-01).
+        array = pyarrow.compute.cast(array, pyarrow.time64("ns"))
+
+        # ChunkedArray has no "view" method, so combine into an Array.
+        array = array.combine_chunks() if hasattr(array, "combine_chunks") else array
+        array = array.view(pyarrow.timestamp("ns"))
+        np_array = array.to_numpy(zero_copy_only=False)
+        return TimeArray(np_array)
 
 
 class TimeArray(core.BaseDatetimeArray):
@@ -69,8 +86,6 @@ class TimeArray(core.BaseDatetimeArray):
     # Data are stored as datetime64 values with a date of Jan 1, 1970
 
     dtype = TimeDtype()
-    _epoch = datetime.datetime(1970, 1, 1)
-    _npepoch = numpy.datetime64(_epoch)
 
     @classmethod
     def _datetime(
@@ -90,7 +105,7 @@ class TimeArray(core.BaseDatetimeArray):
         if scalar is None:
             return None
         elif isinstance(scalar, datetime.time):
-            return datetime.datetime.combine(cls._epoch, scalar)
+            return datetime.datetime.combine(_EPOCH, scalar)
         elif isinstance(scalar, str):
             # iso string
             parsed = match_fn(scalar)
@@ -127,7 +142,7 @@ class TimeArray(core.BaseDatetimeArray):
     __return_deltas = {"timedelta", "timedelta64", "timedelta64[ns]", "<m8", "<m8[ns]"}
 
     def astype(self, dtype, copy=True):
-        deltas = self._ndarray - self._npepoch
+        deltas = self._ndarray - _NPEPOCH
         stype = str(dtype)
         if stype in self.__return_deltas:
             return deltas
@@ -164,8 +179,9 @@ class DateDtype(core.BaseDatetimeDtype):
     def __from_arrow__(
         array: Union[pyarrow.Array, pyarrow.ChunkedArray]
     ) -> "DateArray":
-        # TODO: Consider a more efficient conversion to "M8[ns]" numpy array.
-        return DateArray(array)
+        array = pyarrow.compute.cast(array, pyarrow.timestamp("ns"))
+        np_array = array.to_numpy()
+        return DateArray(np_array)
 
 
 class DateArray(core.BaseDatetimeArray):
@@ -233,7 +249,7 @@ class DateArray(core.BaseDatetimeArray):
             return self.astype("object") + other
 
         if isinstance(other, TimeArray):
-            return (other._ndarray - other._npepoch) + self._ndarray
+            return (other._ndarray - _NPEPOCH) + self._ndarray
 
         return super().__add__(other)
 

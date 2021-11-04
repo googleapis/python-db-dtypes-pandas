@@ -179,10 +179,68 @@ def test_to_arrow_w_arrow_type(series, expected):
     ["expected", "pyarrow_array"],
     SERIES_ARRAYS_DEFAULT_TYPES + SERIES_ARRAYS_CUSTOM_ARROW_TYPES,
 )
-def test_from_arrow(pyarrow_array: pyarrow.Array, expected: pandas.Series):
+def test_series_from_arrow(pyarrow_array: pyarrow.Array, expected: pandas.Series):
     # Convert to RecordBatch because types_mapper argument is ignored when
     # using a pyarrow.Array. https://issues.apache.org/jira/browse/ARROW-9664
     record_batch = pyarrow.RecordBatch.from_arrays([pyarrow_array], ["test_col"])
     dataframe = record_batch.to_pandas(date_as_object=False, types_mapper=types_mapper)
     series = dataframe["test_col"]
     pandas.testing.assert_series_equal(series, expected, check_names=False)
+
+
+@pytest.mark.parametrize(
+    ["expected", "pyarrow_array"],
+    SERIES_ARRAYS_DEFAULT_TYPES + SERIES_ARRAYS_CUSTOM_ARROW_TYPES,
+)
+def test_series_from_arrow_scalars(
+    pyarrow_array: pyarrow.Array, expected: pandas.Series
+):
+    scalars = []
+    for scalar in pyarrow_array:
+        scalars.append(scalar)
+        assert isinstance(scalar, pyarrow.Scalar)
+    series = pandas.Series(scalars, dtype=expected.dtype)
+    pandas.testing.assert_series_equal(series, expected)
+
+
+def test_dataframe_from_arrow():
+    record_batch = pyarrow.RecordBatch.from_arrays(
+        [
+            pyarrow.array(
+                [dt.date(2021, 11, 4), dt.date(2038, 1, 20), None, dt.date(1970, 1, 1)],
+                type=pyarrow.date32(),
+            ),
+            pyarrow.array(
+                [
+                    dt.time(10, 7, 8, 995_325),
+                    dt.time(23, 59, 59, 999_999),
+                    None,
+                    dt.time(0, 0, 0, 0),
+                ],
+                type=pyarrow.time64("us"),
+            ),
+            pyarrow.array([1, 2, 3, 4]),
+        ],
+        ["date_col", "time_col", "int_col"],
+    )
+    dataframe = record_batch.to_pandas(date_as_object=False, types_mapper=types_mapper)
+    expected = pandas.DataFrame(
+        {
+            "date_col": pandas.Series(
+                [dt.date(2021, 11, 4), dt.date(2038, 1, 20), None, dt.date(1970, 1, 1)],
+                dtype="dbdate",
+            ),
+            "time_col": pandas.Series(
+                [
+                    dt.time(10, 7, 8, 995_325),
+                    dt.time(23, 59, 59, 999_999),
+                    None,
+                    dt.time(0, 0, 0, 0),
+                ],
+                dtype="dbtime",
+            ),
+            "int_col": [1, 2, 3, 4],
+        },
+        columns=["date_col", "time_col", "int_col"],
+    )
+    pandas.testing.assert_frame_equal(dataframe, expected)
