@@ -150,11 +150,6 @@ class TimeArray(core.BaseDatetimeArray):
         else:
             return super().astype(dtype, copy=copy)
 
-    if pandas_release < (1,):
-
-        def to_numpy(self, dtype="object"):
-            return self.astype(dtype)
-
     def __arrow_array__(self, type=None):
         array = pyarrow.array(self._ndarray, type=pyarrow.timestamp("ns"))
 
