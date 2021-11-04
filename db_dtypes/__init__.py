@@ -40,7 +40,6 @@ date_dtype_name = "dbdate"
 time_dtype_name = "dbtime"
 _EPOCH = datetime.datetime(1970, 1, 1)
 _NPEPOCH = numpy.datetime64(_EPOCH)
-_PAEPOCH = pyarrow.scalar(_EPOCH, pyarrow.timestamp("ns"))
 
 pandas_release = packaging.version.parse(pandas.__version__).release
 
@@ -66,7 +65,7 @@ class TimeDtype(core.BaseDatetimeDtype):
         if len(array) == 0:
             return TimeArray(numpy.array([], dtype="datetime64[ns]"))
 
-        # We can't cast to timestamp("ns"), but we time64("ns") has the same
+        # We can't cast to timestamp("ns"), but time64("ns") has the same
         # memory layout: 64-bit integers representing the number of nanoseconds
         # since the datetime epoch (midnight 1970-01-01).
         array = pyarrow.compute.cast(array, pyarrow.time64("ns"))
@@ -157,9 +156,17 @@ class TimeArray(core.BaseDatetimeArray):
             return self.astype(dtype)
 
     def __arrow_array__(self, type=None):
-        return pyarrow.array(
-            self.to_numpy(dtype="object"),
-            type=type if type is not None else pyarrow.time64("ns"),
+        array = pyarrow.array(self._ndarray, type=pyarrow.timestamp("ns"))
+
+        # ChunkedArray has no "view" method, so combine into an Array.
+        array = array.combine_chunks() if hasattr(array, "combine_chunks") else array
+
+        # We can't cast to time64("ns"), but timestamp("ns") has the same
+        # memory layout: 64-bit integers representing the number of nanoseconds
+        # since the datetime epoch (midnight 1970-01-01).
+        array = array.view(pyarrow.time64("ns"))
+        return pyarrow.compute.cast(
+            array, type if type is not None else pyarrow.time64("ns"),
         )
 
 
@@ -240,8 +247,9 @@ class DateArray(core.BaseDatetimeArray):
         return super().astype(dtype, copy=copy)
 
     def __arrow_array__(self, type=None):
-        return pyarrow.array(
-            self._ndarray, type=type if type is not None else pyarrow.date32(),
+        array = pyarrow.array(self._ndarray, type=pyarrow.timestamp("ns"))
+        return pyarrow.compute.cast(
+            array, type if type is not None else pyarrow.date32(),
         )
 
     def __add__(self, other):
