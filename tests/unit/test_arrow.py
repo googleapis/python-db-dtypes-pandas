@@ -203,6 +203,29 @@ def test_series_from_arrow_scalars(
     pandas.testing.assert_series_equal(series, expected)
 
 
+def test_dbtime_series_from_arrow_array():
+    """Test to explicitly check Array -> Series conversion."""
+    array = pyarrow.array([dt.time(15, 21, 0, 123_456)], type=pyarrow.time64("us"))
+    assert isinstance(array, pyarrow.Array)
+    assert not isinstance(array, pyarrow.ChunkedArray)
+    series = pandas.Series(db_dtypes.TimeDtype.__from_arrow__(array))
+    expected = pandas.Series([dt.time(15, 21, 0, 123_456)], dtype="dbtime")
+    pandas.testing.assert_series_equal(series, expected)
+
+
+def test_dbtime_series_from_arrow_chunkedarray():
+    """Test to explicitly check ChunkedArray -> Series conversion."""
+    array1 = pyarrow.array([dt.time(15, 21, 0, 123_456)], type=pyarrow.time64("us"))
+    array2 = pyarrow.array([dt.time(0, 0, 0, 0)], type=pyarrow.time64("us"))
+    array = pyarrow.chunked_array([array1, array2])
+    assert isinstance(array, pyarrow.ChunkedArray)
+    series = pandas.Series(db_dtypes.TimeDtype.__from_arrow__(array))
+    expected = pandas.Series(
+        [dt.time(15, 21, 0, 123_456), dt.time(0, 0, 0, 0)], dtype="dbtime"
+    )
+    pandas.testing.assert_series_equal(series, expected)
+
+
 def test_dataframe_from_arrow():
     record_batch = pyarrow.RecordBatch.from_arrays(
         [

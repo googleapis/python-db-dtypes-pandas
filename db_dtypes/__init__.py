@@ -71,7 +71,9 @@ class TimeDtype(core.BaseDatetimeDtype):
         array = pyarrow.compute.cast(array, pyarrow.time64("ns"))
 
         # ChunkedArray has no "view" method, so combine into an Array.
-        array = array.combine_chunks() if hasattr(array, "combine_chunks") else array
+        if isinstance(array, pyarrow.ChunkedArray):
+            array = array.combine_chunks()
+
         array = array.view(pyarrow.timestamp("ns"))
         np_array = array.to_numpy(zero_copy_only=False)
         return TimeArray(np_array)
@@ -154,7 +156,9 @@ class TimeArray(core.BaseDatetimeArray):
         array = pyarrow.array(self._ndarray, type=pyarrow.timestamp("ns"))
 
         # ChunkedArray has no "view" method, so combine into an Array.
-        array = array.combine_chunks() if hasattr(array, "combine_chunks") else array
+        array = (
+            array.combine_chunks() if isinstance(array, pyarrow.ChunkedArray) else array
+        )
 
         # We can't cast to time64("ns"), but timestamp("ns") has the same
         # memory layout: 64-bit integers representing the number of nanoseconds
