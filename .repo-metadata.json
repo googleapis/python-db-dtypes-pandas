@@ -1,7 +1,7 @@
 {
     "name": "db-dtypes",
     "name_pretty": "Pandas Data Types for SQL systems (BigQuery, Spanner)",
-    "client_documentation": "https://googleapis.dev/python/db-dtypes/latest/index.html",
+    "client_documentation": "https://cloud.google.com/python/docs/reference/db-dtypes/latest",
     "release_level": "beta",
     "language": "python",
     "library_type": "INTEGRATION",
