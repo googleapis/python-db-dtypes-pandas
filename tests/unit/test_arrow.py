@@ -24,6 +24,11 @@ import pytest
 import db_dtypes
 
 
+SECOND_NANOS = 1_000_000_000
+MINUTE_NANOS = 60 * SECOND_NANOS
+HOUR_NANOS = 60 * MINUTE_NANOS
+
+
 def types_mapper(
     pyarrow_type: pyarrow.DataType,
 ) -> Optional[pandas.api.extensions.ExtensionDtype]:
@@ -158,6 +163,40 @@ SERIES_ARRAYS_CUSTOM_ARROW_TYPES = [
                 dt.time(23, 59, 59, 999_999),
             ],
             type=pyarrow.time64("us"),
+        ),
+    ),
+    (
+        pandas.Series(
+            [
+                # Only microseconds are supported when reading data. See:
+                # https://github.com/googleapis/python-db-dtypes-pandas/issues/19
+                # Still, round-trip with pyarrow nanosecond precision scalars
+                # is supported.
+                pyarrow.scalar(0, pyarrow.time64("ns")),
+                pyarrow.scalar(
+                    12 * HOUR_NANOS
+                    + 30 * MINUTE_NANOS
+                    + 15 * SECOND_NANOS
+                    + 123_456_789,
+                    pyarrow.time64("ns"),
+                ),
+                pyarrow.scalar(
+                    23 * HOUR_NANOS
+                    + 59 * MINUTE_NANOS
+                    + 59 * SECOND_NANOS
+                    + 999_999_999,
+                    pyarrow.time64("ns"),
+                ),
+            ],
+            dtype="dbtime",
+        ),
+        pyarrow.array(
+            [
+                0,
+                12 * HOUR_NANOS + 30 * MINUTE_NANOS + 15 * SECOND_NANOS + 123_456_789,
+                23 * HOUR_NANOS + 59 * MINUTE_NANOS + 59 * SECOND_NANOS + 999_999_999,
+            ],
+            type=pyarrow.time64("ns"),
         ),
     ),
 ]

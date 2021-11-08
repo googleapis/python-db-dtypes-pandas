@@ -106,12 +106,19 @@ class TimeArray(core.BaseDatetimeArray):
     ):
         # Convert pyarrow values to datetime.time.
         if isinstance(scalar, (pyarrow.Time32Scalar, pyarrow.Time64Scalar)):
-            scalar = scalar.as_py()
+            scalar = (
+                scalar.cast(pyarrow.time64("ns"))
+                .cast(pyarrow.int64())
+                .cast(pyarrow.timestamp("ns"))
+                .as_py()
+            )
 
         if scalar is None:
             return None
         elif isinstance(scalar, datetime.time):
             return datetime.datetime.combine(_EPOCH, scalar)
+        elif isinstance(scalar, pandas.Timestamp):
+            return scalar.to_datetime64()
         elif isinstance(scalar, str):
             # iso string
             parsed = match_fn(scalar)
