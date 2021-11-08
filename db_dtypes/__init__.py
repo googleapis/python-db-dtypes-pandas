@@ -60,6 +60,11 @@ class TimeDtype(core.BaseDatetimeDtype):
     def __from_arrow__(
         array: Union[pyarrow.Array, pyarrow.ChunkedArray]
     ) -> "TimeArray":
+        """Convert to dbtime data from an Arrow array.
+
+        See:
+        https://pandas.pydata.org/pandas-docs/stable/development/extending.html#compatibility-with-apache-arrow
+        """
         # We can't call combine_chunks on an empty array, so short-circuit the
         # rest of the function logic for this special case.
         if len(array) == 0:
@@ -153,6 +158,11 @@ class TimeArray(core.BaseDatetimeArray):
             return super().astype(dtype, copy=copy)
 
     def __arrow_array__(self, type=None):
+        """Convert to an Arrow array from dbtime data.
+
+        See:
+        https://pandas.pydata.org/pandas-docs/stable/development/extending.html#compatibility-with-apache-arrow
+        """
         array = pyarrow.array(self._ndarray, type=pyarrow.timestamp("ns"))
 
         # ChunkedArray has no "view" method, so combine into an Array.
@@ -185,6 +195,11 @@ class DateDtype(core.BaseDatetimeDtype):
     def __from_arrow__(
         array: Union[pyarrow.Array, pyarrow.ChunkedArray]
     ) -> "DateArray":
+        """Convert to dbdate data from an Arrow array.
+
+        See:
+        https://pandas.pydata.org/pandas-docs/stable/development/extending.html#compatibility-with-apache-arrow
+        """
         array = pyarrow.compute.cast(array, pyarrow.timestamp("ns"))
         np_array = array.to_numpy()
         return DateArray(np_array)
@@ -246,6 +261,11 @@ class DateArray(core.BaseDatetimeArray):
         return super().astype(dtype, copy=copy)
 
     def __arrow_array__(self, type=None):
+        """Convert to an Arrow array from dbdate data.
+
+        See:
+        https://pandas.pydata.org/pandas-docs/stable/development/extending.html#compatibility-with-apache-arrow
+        """
         array = pyarrow.array(self._ndarray, type=pyarrow.timestamp("ns"))
         return pyarrow.compute.cast(
             array, type if type is not None else pyarrow.date32(),
