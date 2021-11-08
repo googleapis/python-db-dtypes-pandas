@@ -140,6 +140,24 @@ SERIES_ARRAYS_CUSTOM_ARROW_TYPES = [
     ),
     (
         pandas.Series(
+            [
+                dt.time(0, 0, 0, 0),
+                dt.time(12, 30, 15, 125_000),
+                dt.time(23, 59, 59, 999_000),
+            ],
+            dtype="dbtime",
+        ),
+        pyarrow.array(
+            [
+                dt.time(0, 0, 0, 0),
+                dt.time(12, 30, 15, 125_000),
+                dt.time(23, 59, 59, 999_000),
+            ],
+            type=pyarrow.time32("ms"),
+        ),
+    ),
+    (
+        pandas.Series(
             [dt.time(0, 0, 0, 0), None, dt.time(23, 59, 59, 999_999)], dtype="dbtime",
         ),
         pyarrow.array(
