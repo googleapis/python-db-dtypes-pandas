@@ -183,7 +183,7 @@ SERIES_ARRAYS_CUSTOM_ARROW_TYPES = [
             type=pyarrow.time64("us"),
         ),
     ),
-    (
+    pytest.param(
         pandas.Series(
             [
                 # Only microseconds are supported when reading data. See:
@@ -216,6 +216,7 @@ SERIES_ARRAYS_CUSTOM_ARROW_TYPES = [
             ],
             type=pyarrow.time64("ns"),
         ),
+        id="time-nanoseconds-arrow-round-trip",
     ),
 ]
 

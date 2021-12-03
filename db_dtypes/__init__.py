@@ -233,7 +233,7 @@ class DateArray(core.BaseDatetimeArray):
         if scalar is None:
             return None
         elif isinstance(scalar, datetime.date):
-            return datetime.datetime(scalar.year, scalar.month, scalar.day)
+            return pandas.Timestamp(scalar.year, scalar.month, scalar.day)
         elif isinstance(scalar, str):
             match = match_fn(scalar)
             if not match:
@@ -241,7 +241,7 @@ class DateArray(core.BaseDatetimeArray):
             year = int(match.group("year"))
             month = int(match.group("month"))
             day = int(match.group("day"))
-            return datetime.datetime(year, month, day)
+            return pandas.Timestamp(year, month, day)
         else:
             raise TypeError("Invalid value type", scalar)
 
