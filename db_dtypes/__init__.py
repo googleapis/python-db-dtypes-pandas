@@ -22,13 +22,7 @@ from typing import Optional, Union
 import numpy
 import packaging.version
 import pandas
-import pandas.compat.numpy.function
-import pandas.core.algorithms
-import pandas.core.arrays
-import pandas.core.dtypes.base
-import pandas.core.dtypes.dtypes
-import pandas.core.dtypes.generic
-import pandas.core.nanops
+import pandas.api.extensions
 import pyarrow
 import pyarrow.compute
 
@@ -44,7 +38,7 @@ _NPEPOCH = numpy.datetime64(_EPOCH)
 pandas_release = packaging.version.parse(pandas.__version__).release
 
 
-@pandas.core.dtypes.dtypes.register_extension_dtype
+@pandas.api.extensions.register_extension_dtype
 class TimeDtype(core.BaseDatetimeDtype):
     """
     Extension dtype for time data.
@@ -194,7 +188,7 @@ class TimeArray(core.BaseDatetimeArray):
         )
 
 
-@pandas.core.dtypes.dtypes.register_extension_dtype
+@pandas.api.extensions.register_extension_dtype
 class DateDtype(core.BaseDatetimeDtype):
     """
     Extension dtype for time data.

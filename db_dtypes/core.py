@@ -19,12 +19,7 @@ import pandas
 from pandas._libs import NaT
 import pandas.api.extensions
 import pandas.compat.numpy.function
-import pandas.core.algorithms
-import pandas.core.arrays
-import pandas.core.dtypes.base
-from pandas.core.dtypes.common import is_dtype_equal, is_list_like, pandas_dtype
-import pandas.core.dtypes.dtypes
-import pandas.core.dtypes.generic
+from pandas.api.types import is_dtype_equal, is_list_like, pandas_dtype
 import pandas.core.nanops
 
 from db_dtypes import pandas_backports
