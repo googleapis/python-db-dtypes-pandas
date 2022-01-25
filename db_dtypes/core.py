@@ -19,7 +19,6 @@ import pandas
 from pandas import NaT
 import pandas.api.extensions
 from pandas.api.types import is_dtype_equal, is_list_like, pandas_dtype
-import pandas.core.nanops
 
 from db_dtypes import pandas_backports
 
@@ -112,7 +111,7 @@ class BaseDatetimeArray(
         skipna: bool = True,
     ):
         pandas_backports.numpy_validate_any((), {"out": out, "keepdims": keepdims})
-        result = pandas.core.nanops.nanany(self._ndarray, axis=axis, skipna=skipna)
+        result = pandas_backports.nanany(self._ndarray, axis=axis, skipna=skipna)
         return result
 
     def all(
@@ -123,22 +122,20 @@ class BaseDatetimeArray(
         keepdims: bool = False,
         skipna: bool = True,
     ):
-        pandas.compat.numpy.function.validate_all(
-            (), {"out": out, "keepdims": keepdims}
-        )
-        result = pandas.core.nanops.nanall(self._ndarray, axis=axis, skipna=skipna)
+        pandas_backports.numpy_validate_all((), {"out": out, "keepdims": keepdims})
+        result = pandas_backports.nanall(self._ndarray, axis=axis, skipna=skipna)
         return result
 
     def min(self, *, axis: Optional[int] = None, skipna: bool = True, **kwargs):
-        pandas.compat.numpy.function.validate_min((), kwargs)
-        result = pandas.core.nanops.nanmin(
+        pandas_backports.numpy_validate_min((), kwargs)
+        result = pandas_backports.nanmin(
             values=self._ndarray, axis=axis, mask=self.isna(), skipna=skipna
         )
         return self._box_func(result)
 
     def max(self, *, axis: Optional[int] = None, skipna: bool = True, **kwargs):
-        pandas.compat.numpy.function.validate_max((), kwargs)
-        result = pandas.core.nanops.nanmax(
+        pandas_backports.numpy_validate_max((), kwargs)
+        result = pandas_backports.nanmax(
             values=self._ndarray, axis=axis, mask=self.isna(), skipna=skipna
         )
         return self._box_func(result)
@@ -154,11 +151,9 @@ class BaseDatetimeArray(
             keepdims: bool = False,
             skipna: bool = True,
         ):
-            pandas.compat.numpy.function.validate_median(
+            pandas_backports.numpy_validate_median(
                 (),
                 {"out": out, "overwrite_input": overwrite_input, "keepdims": keepdims},
             )
-            result = pandas.core.nanops.nanmedian(
-                self._ndarray, axis=axis, skipna=skipna
-            )
+            result = pandas_backports.nanmedian(self._ndarray, axis=axis, skipna=skipna)
             return self._box_func(result)

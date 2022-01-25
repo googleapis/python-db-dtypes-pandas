@@ -25,14 +25,26 @@ from typing import Any
 import numpy
 import packaging.version
 import pandas
-from pandas._libs.lib import is_integer  # TODO: use public version if available
+from pandas.api.types import is_integer
 import pandas.compat.numpy.function
+import pandas.core.nanops
 
 
 pandas_release = packaging.version.parse(pandas.__version__).release
 
 # Create aliases for private methods in case they move in a future version.
+nanall = pandas.core.nanops.nanall
+nanany = pandas.core.nanops.nanany
+nanmax = pandas.core.nanops.nanmax
+nanmin = pandas.core.nanops.nanmin
+numpy_validate_all = pandas.compat.numpy.function.validate_all
 numpy_validate_any = pandas.compat.numpy.function.validate_any
+numpy_validate_max = pandas.compat.numpy.function.validate_max
+numpy_validate_min = pandas.compat.numpy.function.validate_min
+
+if pandas_release >= (1, 2):
+    nanmedian = pandas.core.nanops.nanmedian
+    numpy_validate_median = pandas.compat.numpy.function.validate_median
 
 
 def import_default(module_name, force=False, default=None):
