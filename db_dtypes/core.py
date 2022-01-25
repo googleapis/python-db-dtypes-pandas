@@ -100,6 +100,10 @@ class BaseDatetimeArray(
         return pandas.isna(self._ndarray)
 
     def _validate_scalar(self, value):
+        """
+        Validate and convert a scalar value to datetime64[ns] for storage in
+        backing NumPy array.
+        """
         return self._datetime(value)
 
     def any(
