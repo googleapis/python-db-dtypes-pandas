@@ -12,13 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Optional, Sequence
+from typing import Optional
 
 import numpy
 import pandas
-from pandas._libs import NaT
+from pandas import NaT
 import pandas.api.extensions
-import pandas.compat.numpy.function
+import pandas.compat.numpy.function  # TODO: move to pandas_backports
 from pandas.api.types import is_dtype_equal, is_list_like, pandas_dtype
 import pandas.core.nanops
 
@@ -102,38 +102,7 @@ class BaseDatetimeArray(
         return pandas.isna(self._ndarray)
 
     def _validate_scalar(self, value):
-        if pandas.isna(value):
-            return None
-
-        if not isinstance(value, self.dtype.type):
-            raise ValueError(value)
-
-        return value
-
-    def take(
-        self,
-        indices: Sequence[int],
-        *,
-        allow_fill: bool = False,
-        fill_value: Any = None,
-    ):
-        indices = numpy.asarray(indices, dtype=numpy.intp)
-        data = self._ndarray
-        if allow_fill:
-            fill_value = self._validate_scalar(fill_value)
-            fill_value = (
-                numpy.datetime64() if fill_value is None else self._datetime(fill_value)
-            )
-            if (indices < -1).any():
-                raise ValueError(
-                    "take called with negative indexes other than -1,"
-                    " when a fill value is provided."
-                )
-        out = data.take(indices)
-        if allow_fill:
-            out[indices == -1] = fill_value
-
-        return self.__class__(out)
+        return self._datetime(value)
 
     # TODO: provide implementations of dropna, fillna, unique,
     # factorize, argsort, searchsoeted for better performance over

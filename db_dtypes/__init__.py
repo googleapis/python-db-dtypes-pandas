@@ -107,7 +107,7 @@ class TimeArray(core.BaseDatetimeArray):
                 .as_py()
             )
 
-        if scalar is None:
+        if pandas.isna(scalar):
             return None
         if isinstance(scalar, datetime.time):
             return pandas.Timestamp(
@@ -232,7 +232,7 @@ class DateArray(core.BaseDatetimeArray):
         if isinstance(scalar, (pyarrow.Date32Scalar, pyarrow.Date64Scalar)):
             scalar = scalar.as_py()
 
-        if scalar is None:
+        if pandas.isna(scalar):
             return None
         elif isinstance(scalar, datetime.date):
             return pandas.Timestamp(
