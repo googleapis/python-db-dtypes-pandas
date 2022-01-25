@@ -72,7 +72,11 @@ def import_default(module_name, force=False, default=None):
     return getattr(module, name, default)
 
 
-@import_default("pandas.core.arraylike")  # TODO: is there a public API for this?
+# pandas.core.arraylike.OpsMixin is private, but the related public API
+# "ExtensionScalarOpsMixin" is not sufficient for adding dates to times.
+# It results in unsupported operand type(s) for +: 'datetime.time' and
+# 'datetime.date'
+@import_default("pandas.core.arraylike")
 class OpsMixin:
     def _cmp_method(self, other, op):  # pragma: NO COVER
         return NotImplemented
@@ -98,8 +102,8 @@ class OpsMixin:
     __add__ = __radd__ = __sub__ = lambda self, other: NotImplemented
 
 
-# TODO: use public API if possible
-# https://github.com/pandas-dev/pandas/pull/45544/files
+# TODO: use public API once pandas 1.5 / 2.x is released.
+# See: https://github.com/pandas-dev/pandas/pull/45544
 @import_default("pandas.core.arrays._mixins", pandas_release < (1, 3))
 class NDArrayBackedExtensionArray(pandas.core.arrays.base.ExtensionArray):
 
