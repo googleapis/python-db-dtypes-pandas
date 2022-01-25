@@ -18,7 +18,6 @@ import numpy
 import pandas
 from pandas import NaT
 import pandas.api.extensions
-import pandas.compat.numpy.function  # TODO: move to pandas_backports
 from pandas.api.types import is_dtype_equal, is_list_like, pandas_dtype
 import pandas.core.nanops
 
@@ -104,10 +103,6 @@ class BaseDatetimeArray(
     def _validate_scalar(self, value):
         return self._datetime(value)
 
-    # TODO: provide implementations of dropna, fillna, unique,
-    # factorize, argsort, searchsoeted for better performance over
-    # abstract implementations.
-
     def any(
         self,
         *,
@@ -116,9 +111,7 @@ class BaseDatetimeArray(
         keepdims: bool = False,
         skipna: bool = True,
     ):
-        pandas.compat.numpy.function.validate_any(
-            (), {"out": out, "keepdims": keepdims}
-        )
+        pandas_backports.numpy_validate_any((), {"out": out, "keepdims": keepdims})
         result = pandas.core.nanops.nanany(self._ndarray, axis=axis, skipna=skipna)
         return result
 

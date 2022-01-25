@@ -20,14 +20,19 @@ the versions in the later versions of pandas.
 """
 
 import operator
+from typing import Any
 
 import numpy
 import packaging.version
 import pandas
-from pandas._libs.lib import is_integer
+from pandas._libs.lib import is_integer  # TODO: use public version if available
+import pandas.compat.numpy.function
 
 
 pandas_release = packaging.version.parse(pandas.__version__).release
+
+# Create aliases for private methods in case they move in a future version.
+numpy_validate_any = pandas.compat.numpy.function.validate_any
 
 
 def import_default(module_name, force=False, default=None):
@@ -55,7 +60,7 @@ def import_default(module_name, force=False, default=None):
     return getattr(module, name, default)
 
 
-@import_default("pandas.core.arraylike")
+@import_default("pandas.core.arraylike")  # TODO: is there a public API for this?
 class OpsMixin:
     def _cmp_method(self, other, op):  # pragma: NO COVER
         return NotImplemented
@@ -81,6 +86,8 @@ class OpsMixin:
     __add__ = __radd__ = __sub__ = lambda self, other: NotImplemented
 
 
+# TODO: use public API if possible
+# https://github.com/pandas-dev/pandas/pull/45544/files
 @import_default("pandas.core.arrays._mixins", pandas_release < (1, 3))
 class NDArrayBackedExtensionArray(pandas.core.arrays.base.ExtensionArray):
 
@@ -129,6 +136,28 @@ class NDArrayBackedExtensionArray(pandas.core.arrays.base.ExtensionArray):
 
     def repeat(self, n):
         return self.__class__(self._ndarray.repeat(n), self._dtype)
+
+    def take(
+        self,
+        indices,
+        *,
+        allow_fill: bool = False,
+        fill_value: Any = None,
+        axis: int = 0,
+    ):
+        from pandas.core.algorithms import take
+
+        if allow_fill:
+            fill_value = self._validate_scalar(fill_value)
+
+        new_data = take(
+            self._ndarray,
+            indices,
+            allow_fill=allow_fill,
+            fill_value=fill_value,
+            axis=axis,
+        )
+        return self._from_backing_data(new_data)
 
     @classmethod
     def _concat_same_type(cls, to_concat, axis=0):
