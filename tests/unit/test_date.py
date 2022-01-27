@@ -65,3 +65,17 @@ def test_date_parsing(value, expected):
 def test_date_parsing_errors(value, error):
     with pytest.raises(ValueError, match=error):
         pandas.Series([value], dtype="dbdate")
+
+
+# TODO: skip if median not available
+@pytest.mark.parametrize(
+    "values, expected",
+    [
+        (["1970-01-01", "1900-01-01", "2000-01-01"], datetime.date(1970, 1, 1)),
+        ([None, "1900-01-01", None], datetime.date(1900, 1, 1)),
+        (["2222-02-01", "2222-02-03"], datetime.date(2222, 2, 2)),
+    ],
+)
+def test_date_median(values, expected):
+    series = pandas.Series(values, dtype="dbdate")
+    assert series.median() == expected
