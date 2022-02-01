@@ -15,37 +15,25 @@
 Tests for extension interface compliance, inherited from pandas.
 
 See:
+https://github.com/pandas-dev/pandas/blob/main/pandas/tests/extension/decimal/test_decimal.py
+and
 https://github.com/pandas-dev/pandas/blob/main/pandas/tests/extension/test_period.py
 """
 
-import datetime
-
-import numpy
 from pandas.tests.extension import base
-import pytest
-
-from db_dtypes import DateArray
-
-# NDArrayBacked2DTests suite added in https://github.com/pandas-dev/pandas/pull/44974
-pytest.importorskip("pandas", minversion="1.5.0dev")
 
 
-@pytest.fixture
-def data():
-    return DateArray(
-        numpy.arange(
-            datetime.datetime(1900, 1, 1),
-            datetime.datetime(2099, 12, 31),
-            datetime.timedelta(days=13),
-            dtype="datetime64[ns]",
-        )
-    )
+class TestDtype(base.BaseDtypeTests):
+    pass
 
 
-@pytest.fixture
-def data_missing():
-    return DateArray([None, datetime.date(2022, 1, 27)])
+class TestInterface(base.BaseInterfaceTests):
+    pass
 
 
-class Test2DCompat(base.NDArrayBacked2DTests):
+class TestConstructors(base.BaseConstructorsTests):
+    pass
+
+
+class TestReshaping(base.BaseReshapingTests):
     pass

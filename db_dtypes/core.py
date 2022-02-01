@@ -16,9 +16,8 @@ from typing import Optional
 
 import numpy
 import pandas
-from pandas import NaT
 import pandas.api.extensions
-from pandas.api.types import is_dtype_equal, is_list_like, pandas_dtype
+from pandas.api.types import is_dtype_equal, is_list_like, is_scalar, pandas_dtype
 
 from db_dtypes import pandas_backports
 
@@ -27,14 +26,18 @@ pandas_release = pandas_backports.pandas_release
 
 
 class BaseDatetimeDtype(pandas.api.extensions.ExtensionDtype):
-    na_value = NaT
-    kind = "o"
+    na_value = pandas.NaT
+    kind = "O"
     names = None
 
     @classmethod
-    def construct_from_string(cls, name):
+    def construct_from_string(cls, name: str):
+        if not isinstance(name, str):
+            raise TypeError(
+                f"'construct_from_string' expects a string, got {type(name)}"
+            )
         if name != cls.name:
-            raise TypeError()
+            raise TypeError(f"Cannot construct a '{cls.__name__}' from 'another_type'")
 
         return cls()
 
@@ -75,6 +78,9 @@ class BaseDatetimeArray(
         return super().astype(dtype, copy=copy)
 
     def _cmp_method(self, other, op):
+        if is_scalar(other) and (pandas.isna(other) or type(other) == self.dtype.type):
+            other = type(self)([other])
+
         oshape = getattr(other, "shape", None)
         if oshape != self.shape and oshape != (1,) and self.shape != (1,):
             raise TypeError(

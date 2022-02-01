@@ -19,6 +19,7 @@ import pytest
 
 # To register the types.
 import db_dtypes  # noqa
+from db_dtypes import pandas_backports
 
 
 @pytest.mark.parametrize(
@@ -67,7 +68,10 @@ def test_date_parsing_errors(value, error):
         pandas.Series([value], dtype="dbdate")
 
 
-# TODO: skip if median not available
+@pytest.mark.skipif(
+    not hasattr(pandas_backports, "numpy_validate_median"),
+    reason="median not available with this version of pandas",
+)
 @pytest.mark.parametrize(
     "values, expected",
     [

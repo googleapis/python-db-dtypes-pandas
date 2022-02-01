@@ -145,7 +145,7 @@ class TimeArray(core.BaseDatetimeArray):
             raise TypeError("Invalid value type", scalar)
 
     def _box_func(self, x):
-        if pandas.isnull(x):
+        if pandas.isna(x):
             return None
 
         try:
