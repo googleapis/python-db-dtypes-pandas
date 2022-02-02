@@ -533,7 +533,7 @@ def test_min_max_median(dtype):
         a = cls(data)
         assert a.min() == sample_values[0]
         assert a.max() == sample_values[-1]
-        if pandas_release >= (1, 2):
+        if pandas_release >= (1, 3):
             assert (
                 a.median() == datetime.time(1, 2, 4)
                 if dtype == "dbtime"
@@ -543,14 +543,14 @@ def test_min_max_median(dtype):
     empty = cls([])
     assert empty.min() is pd.NaT
     assert empty.max() is pd.NaT
-    if pandas_release >= (1, 2):
+    if pandas_release >= (1, 3):
         assert empty.median() is pd.NaT
     empty = cls([None])
     assert empty.min() is pd.NaT
     assert empty.max() is pd.NaT
     assert empty.min(skipna=False) is pd.NaT
     assert empty.max(skipna=False) is pd.NaT
-    if pandas_release >= (1, 2):
+    if pandas_release >= (1, 3):
         with pytest.warns(RuntimeWarning, match="empty slice"):
             # It's weird that we get the warning here, and not
             # below. :/
@@ -560,7 +560,7 @@ def test_min_max_median(dtype):
     a = _make_one(dtype)
     assert a.min() == sample_values[0]
     assert a.max() == sample_values[1]
-    if pandas_release >= (1, 2):
+    if pandas_release >= (1, 3):
         assert (
             a.median() == datetime.time(1, 2, 2, 750000)
             if dtype == "dbtime"
