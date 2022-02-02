@@ -250,7 +250,7 @@ class DateArray(core.BaseDatetimeArray):
             raise TypeError("Invalid value type", scalar)
 
     def _box_func(self, x):
-        if pandas.isnull(x):
+        if pandas.isna(x):
             return pandas.NaT
         try:
             return x.astype("<M8[us]").astype(datetime.datetime).date()
