@@ -98,7 +98,7 @@ def test_array_construction(dtype, factory_method):
     assert a.shape == (3,)
     sample_values = SAMPLE_VALUES[dtype]
     assert a[0], a[1] == sample_values[:2]
-    assert a[2] is None
+    assert pd.isna(a[2]) and a[2] is pd.NaT
 
     # implementation details:
     assert a.nbytes == 24

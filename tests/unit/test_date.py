@@ -76,7 +76,10 @@ def test_date_parsing_errors(value, error):
     "values, expected",
     [
         (["1970-01-01", "1900-01-01", "2000-01-01"], datetime.date(1970, 1, 1)),
-        ([None, "1900-01-01", None], datetime.date(1900, 1, 1)),
+        (
+            [None, "1900-01-01", pandas.NA, pandas.NaT, float("nan")],
+            datetime.date(1900, 1, 1),
+        ),
         (["2222-02-01", "2222-02-03"], datetime.date(2222, 2, 2)),
     ],
 )

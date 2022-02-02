@@ -146,7 +146,7 @@ class TimeArray(core.BaseDatetimeArray):
 
     def _box_func(self, x):
         if pandas.isna(x):
-            return None
+            return pandas.NaT
 
         try:
             return x.astype("<M8[us]").astype(datetime.datetime).time()
@@ -251,7 +251,7 @@ class DateArray(core.BaseDatetimeArray):
 
     def _box_func(self, x):
         if pandas.isnull(x):
-            return None
+            return pandas.NaT
         try:
             return x.astype("<M8[us]").astype(datetime.datetime).date()
         except AttributeError:
