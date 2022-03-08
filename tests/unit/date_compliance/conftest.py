@@ -21,6 +21,43 @@ import pytest
 from db_dtypes import DateArray, DateDtype
 
 
+_all_numeric_reductions = [
+    "sum",
+    "max",
+    "min",
+    "mean",
+    "prod",
+    "std",
+    "var",
+    "median",
+    "kurt",
+    "skew",
+]
+
+
+@pytest.fixture(params=_all_numeric_reductions)
+def all_numeric_reductions(request):
+    """
+    Fixture for numeric reduction names.
+
+    See: https://github.com/pandas-dev/pandas/blob/main/pandas/conftest.py
+    """
+    return request.param
+
+
+_all_boolean_reductions = ["all", "any"]
+
+
+@pytest.fixture(params=_all_boolean_reductions)
+def all_boolean_reductions(request):
+    """
+    Fixture for boolean reduction names.
+
+    See: https://github.com/pandas-dev/pandas/blob/main/pandas/conftest.py
+    """
+    return request.param
+
+
 @pytest.fixture
 def data():
     return DateArray(
@@ -43,6 +80,26 @@ def dtype():
     return DateDtype()
 
 
+@pytest.fixture(params=["ffill", "bfill"])
+def fillna_method(request):
+    """
+    Parametrized fixture giving method parameters 'ffill' and 'bfill' for
+    Series.fillna(method=<method>) testing.
+
+    See:
+    https://github.com/pandas-dev/pandas/blob/main/pandas/tests/extension/conftest.py
+    """
+    return request.param
+
+
 @pytest.fixture
 def na_value():
     return pandas.NaT
+
+
+@pytest.fixture
+def na_cmp():
+    def cmp(a, b):
+        return a is pandas.NaT and a is b
+
+    return cmp

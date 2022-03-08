@@ -29,3 +29,7 @@ pytest.importorskip("pandas", minversion="1.5.0dev")
 
 class Test2DCompat(base.NDArrayBacked2DTests):
     pass
+
+
+class TestIndex(base.BaseIndexTests):
+    pass
