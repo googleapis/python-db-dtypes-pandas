@@ -77,10 +77,12 @@ s.replace(
 s.replace(["noxfile.py"], r'os.path.join\("tests", "unit"\),', "tests_path,")
 s.replace(
     ["noxfile.py"],
-    r"""
+    r'''
 @nox.session\(python=UNIT_TEST_PYTHON_VERSIONS\)
 def unit\(session\):
-""",
+    """Run the unit test suite."""
+    default\(session\)
+''',
     '''
 @nox.session(python=UNIT_TEST_PYTHON_VERSIONS[-1])
 def compliance(session):
@@ -90,6 +92,8 @@ def compliance(session):
 
 @nox.session(python=UNIT_TEST_PYTHON_VERSIONS)
 def unit(session):
+    """Run the unit test suite."""
+    default(session, os.path.join("tests", "unit"))
 ''',
 )
 

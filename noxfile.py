@@ -121,7 +121,7 @@ def compliance(session):
 @nox.session(python=UNIT_TEST_PYTHON_VERSIONS)
 def unit(session):
     """Run the unit test suite."""
-    default(session)
+    default(session, os.path.join("tests", "unit"))
 
 
 @nox.session(python=SYSTEM_TEST_PYTHON_VERSIONS)
