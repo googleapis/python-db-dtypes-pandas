@@ -58,6 +58,28 @@ def all_boolean_reductions(request):
     return request.param
 
 
+@pytest.fixture(params=[True, False])
+def as_frame(request):
+    """
+    Boolean fixture to support Series and Series.to_frame() comparison testing.
+
+    See:
+    https://github.com/pandas-dev/pandas/blob/main/pandas/tests/extension/conftest.py
+    """
+    return request.param
+
+
+@pytest.fixture(params=[True, False])
+def as_series(request):
+    """
+    Boolean fixture to support arr and Series(arr) comparison testing.
+
+    See:
+    https://github.com/pandas-dev/pandas/blob/main/pandas/tests/extension/conftest.py
+    """
+    return request.param
+
+
 @pytest.fixture
 def data():
     return DateArray(
@@ -71,8 +93,96 @@ def data():
 
 
 @pytest.fixture
+def data_for_grouping(dtype):
+    """
+    Data for factorization, grouping, and unique tests.
+
+    Expected to be like [B, B, NA, NA, A, A, B, C]
+
+    Where A < B < C and NA is missing
+
+    See:
+    https://github.com/pandas-dev/pandas/blob/main/pandas/tests/extension/conftest.py
+    """
+    b = datetime.date(2022, 3, 9)
+    a = datetime.date(1969, 12, 31)
+    na = pandas.NaT
+    return pandas.array([b, b, na, na, a, a, b], dtype=dtype)
+
+
+@pytest.fixture
+def data_for_sorting():
+    """
+    Length-3 array with a known sort order.
+
+    This should be three items [B, C, A] with
+    A < B < C
+
+    See:
+    https://github.com/pandas-dev/pandas/blob/main/pandas/tests/extension/conftest.py
+    """
+    return DateArray(
+        [
+            datetime.date(2022, 1, 27),
+            datetime.date(2022, 3, 9),
+            datetime.date(1969, 12, 31),
+        ]
+    )
+
+
+@pytest.fixture
+def data_missing_for_sorting():
+    """
+    Length-3 array with a known sort order.
+
+    This should be three items [B, NA, A] with
+    A < B and NA missing.
+
+    See:
+    https://github.com/pandas-dev/pandas/blob/main/pandas/tests/extension/conftest.py
+    """
+    return DateArray(
+        [datetime.date(2022, 1, 27), pandas.NaT, datetime.date(1969, 12, 31)]
+    )
+
+
+@pytest.fixture
 def data_missing():
+    """Length-2 array with [NA, Valid]
+
+    See:
+    https://github.com/pandas-dev/pandas/blob/main/pandas/tests/extension/conftest.py
+    """
     return DateArray([None, datetime.date(2022, 1, 27)])
+
+
+@pytest.fixture
+def data_repeated(data):
+    """
+    Generate many datasets.
+
+    See:
+    https://github.com/pandas-dev/pandas/blob/main/pandas/tests/extension/conftest.py
+    """
+
+    def gen(count):
+        for _ in range(count):
+            yield data
+
+    return gen
+
+
+@pytest.fixture(params=["data", "data_missing"])
+def all_data(request, data, data_missing):
+    """Parametrized fixture giving 'data' and 'data_missing'
+
+    See:
+    https://github.com/pandas-dev/pandas/blob/main/pandas/tests/arrays/floating/conftest.py
+    """
+    if request.param == "data":
+        return data
+    elif request.param == "data_missing":
+        return data_missing
 
 
 @pytest.fixture
@@ -103,3 +213,39 @@ def na_cmp():
         return a is pandas.NaT and a is b
 
     return cmp
+
+
+@pytest.fixture(params=[None, lambda x: x])
+def sort_by_key(request):
+    """
+    Simple fixture for testing keys in sorting methods.
+    Tests None (no key) and the identity key.
+
+    See: https://github.com/pandas-dev/pandas/blob/main/pandas/conftest.py
+    """
+    return request.param
+
+
+@pytest.fixture(params=[True, False])
+def use_numpy(request):
+    """
+    Boolean fixture to support comparison testing of ExtensionDtype array
+    and numpy array.
+
+    See:
+    https://github.com/pandas-dev/pandas/blob/main/pandas/tests/extension/conftest.py
+    """
+    return request.param
+
+
+@pytest.fixture
+def invalid_scalar(data):
+    """
+    A scalar that *cannot* be held by this ExtensionArray.
+    The default should work for most subclasses, but is not guaranteed.
+    If the array can hold any item (i.e. object dtype), then use pytest.skip.
+
+    See:
+    https://github.com/pandas-dev/pandas/blob/main/pandas/tests/extension/conftest.py
+    """
+    return object.__new__(object)
