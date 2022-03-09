@@ -12,40 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import datetime
-
-import numpy
 import pandas
 import pytest
-
-from db_dtypes import DateArray, DateDtype
-
-
-@pytest.fixture
-def data():
-    return DateArray(
-        numpy.arange(
-            datetime.datetime(1900, 1, 1),
-            datetime.datetime(2099, 12, 31),
-            datetime.timedelta(days=731),
-            dtype="datetime64[ns]",
-        )
-    )
-
-
-@pytest.fixture
-def data_missing():
-    """Length-2 array with [NA, Valid]
-
-    See:
-    https://github.com/pandas-dev/pandas/blob/main/pandas/tests/extension/conftest.py
-    """
-    return DateArray([None, datetime.date(2022, 1, 27)])
-
-
-@pytest.fixture
-def dtype():
-    return DateDtype()
 
 
 @pytest.fixture(params=["ffill", "bfill"])
