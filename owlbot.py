@@ -108,7 +108,7 @@ new_unittest = """
     runs-on: ubuntu-latest
 """
 
-s.replace([".github/workflows/unittest.yml"], old_sessions, new_sessions)
+s.replace([".github/workflows/unittest.yml"], old_unittest, new_unittest)
 
 # ----------------------------------------------------------------------------
 # Samples templates

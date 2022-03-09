@@ -78,7 +78,7 @@ def lint_setup_py(session):
     session.run("python", "setup.py", "check", "--restructuredtext", "--strict")
 
 
-def default(session, tests_path):
+def default(session):
     # Install all test dependencies, then install this package in-place.
 
     constraints_path = str(
@@ -107,21 +107,15 @@ def default(session, tests_path):
         "--cov-config=.coveragerc",
         "--cov-report=",
         "--cov-fail-under=0",
-        tests_path,
+        os.path.join("tests", "unit"),
         *session.posargs,
     )
-
-
-@nox.session(python=UNIT_TEST_PYTHON_VERSIONS[-1])
-def compliance(session):
-    """Run the compliance test suite."""
-    default(session, os.path.join("tests", "compliance"))
 
 
 @nox.session(python=UNIT_TEST_PYTHON_VERSIONS)
 def unit(session):
     """Run the unit test suite."""
-    default(session, os.path.join("tests", "unit"))
+    default(session)
 
 
 @nox.session(python=SYSTEM_TEST_PYTHON_VERSIONS)
