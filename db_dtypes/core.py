@@ -36,6 +36,7 @@ class BaseDatetimeDtype(pandas.api.extensions.ExtensionDtype):
             raise TypeError(
                 f"'construct_from_string' expects a string, got {type(name)}"
             )
+
         if name != cls.name:
             raise TypeError(f"Cannot construct a '{cls.__name__}' from 'another_type'")
 
@@ -141,35 +142,29 @@ class BaseDatetimeArray(
         result = pandas_backports.nanmin(
             values=self._ndarray, axis=axis, mask=self.isna(), skipna=skipna
         )
-        if axis is None or self.ndim == 1:
-            return self._box_func(result)
-        return self._from_backing_data(result)
+        return self._box_func(result)
 
     def max(self, *, axis: Optional[int] = None, skipna: bool = True, **kwargs):
         pandas_backports.numpy_validate_max((), kwargs)
         result = pandas_backports.nanmax(
             values=self._ndarray, axis=axis, mask=self.isna(), skipna=skipna
         )
-        if axis is None or self.ndim == 1:
-            return self._box_func(result)
-        return self._from_backing_data(result)
+        return self._box_func(result)
 
-    def median(
-        self,
-        *,
-        axis: Optional[int] = None,
-        out=None,
-        overwrite_input: bool = False,
-        keepdims: bool = False,
-        skipna: bool = True,
-    ):
-        if not hasattr(pandas_backports, "numpy_validate_median"):
-            raise NotImplementedError("Need pandas 1.3 or later to calculate median.")
+    if pandas_release >= (1, 2):
 
-        pandas_backports.numpy_validate_median(
-            (), {"out": out, "overwrite_input": overwrite_input, "keepdims": keepdims},
-        )
-        result = pandas_backports.nanmedian(self._ndarray, axis=axis, skipna=skipna)
-        if axis is None or self.ndim == 1:
+        def median(
+            self,
+            *,
+            axis: Optional[int] = None,
+            out=None,
+            overwrite_input: bool = False,
+            keepdims: bool = False,
+            skipna: bool = True,
+        ):
+            pandas_backports.numpy_validate_median(
+                (),
+                {"out": out, "overwrite_input": overwrite_input, "keepdims": keepdims},
+            )
+            result = pandas_backports.nanmedian(self._ndarray, axis=axis, skipna=skipna)
             return self._box_func(result)
-        return self._from_backing_data(result)

@@ -59,7 +59,3 @@ class TestGetitem(base.BaseGetitemTests):
 
 class TestMissing(base.BaseMissingTests):
     pass
-
-
-class TestMethods(base.BaseMethodsTests):
-    pass
