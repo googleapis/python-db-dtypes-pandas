@@ -97,46 +97,6 @@ def unit(session):
 ''',
 )
 
-
-old_unittest = """
-  cover:
-    runs-on: ubuntu-latest
-"""
-
-new_unittest = """
-  compliance:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python: ['3.10']
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v3
-    - name: Setup Python
-      uses: actions/setup-python@v3
-      with:
-        python-version: ${{ matrix.python }}
-    - name: Install nox
-      run: |
-        python -m pip install --upgrade setuptools pip wheel
-        python -m pip install nox
-    - name: Run compliance tests
-      env:
-        COVERAGE_FILE: .coverage-compliance-${{ matrix.python }}
-      run: |
-        nox -s compliance
-    - name: Upload coverage results
-      uses: actions/upload-artifact@v3
-      with:
-        name: coverage-artifacts
-        path: .coverage-compliance-${{ matrix.python }}
-
-  cover:
-    runs-on: ubuntu-latest
-"""
-
-s.replace([".github/workflows/unittest.yml"], old_unittest, new_unittest)
-
 # ----------------------------------------------------------------------------
 # Samples templates
 # ----------------------------------------------------------------------------
