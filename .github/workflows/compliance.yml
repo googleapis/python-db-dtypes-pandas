@@ -25,8 +25,3 @@ jobs:
         COVERAGE_FILE: .coverage-compliance-${{ matrix.python }}
       run: |
         nox -s compliance
-    - name: Upload coverage results
-      uses: actions/upload-artifact@v3
-      with:
-        name: coverage-artifacts
-        path: .coverage-compliance-${{ matrix.python }}
