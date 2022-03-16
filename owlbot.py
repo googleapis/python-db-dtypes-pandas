@@ -138,7 +138,7 @@ def prerelease(session, tests_path):
     deps = [
         match.group(1)
         for match in re.finditer(
-            r"^\s*(\S+)(?===\S+)", constraints_text, flags=re.MULTILINE
+            r"^\\s*(\\S+)(?===\\S+)", constraints_text, flags=re.MULTILINE
         )
     ]
 
