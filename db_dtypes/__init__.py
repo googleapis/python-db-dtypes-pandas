@@ -36,7 +36,9 @@ _EPOCH = datetime.datetime(1970, 1, 1)
 _NPEPOCH = numpy.datetime64(_EPOCH)
 _NP_DTYPE = "datetime64[ns]"
 
-# Use microseconds for conversion datetime.datetime.
+# Numpy converts datetime64 scalars to datetime.datetime only if microsecond or
+# smaller precision is used.
+#
 # TODO(https://github.com/googleapis/python-db-dtypes-pandas/issues/63): Keep
 # nanosecond precision when boxing scalars.
 _NP_BOX_DTYPE = "datetime64[us]"
