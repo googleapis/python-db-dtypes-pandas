@@ -36,6 +36,7 @@ class BaseDatetimeDtype(pandas.api.extensions.ExtensionDtype):
             raise TypeError(
                 f"'construct_from_string' expects a string, got {type(name)}"
             )
+
         if name != cls.name:
             raise TypeError(f"Cannot construct a '{cls.__name__}' from 'another_type'")
 
