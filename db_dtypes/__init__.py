@@ -157,7 +157,9 @@ class TimeArray(core.BaseDatetimeArray):
         try:
             return x.astype(_NP_BOX_DTYPE).item().time()
         except AttributeError:
-            x = numpy.datetime64(x, _NP_BOX_DTYPE)
+            x = numpy.datetime64(
+                x, "ns"
+            )  # Integers are stored with nanosecond precision.
             return x.astype(_NP_BOX_DTYPE).item().time()
 
     __return_deltas = {"timedelta", "timedelta64", "timedelta64[ns]", "<m8", _NP_DTYPE}
@@ -261,7 +263,9 @@ class DateArray(core.BaseDatetimeArray):
         try:
             return x.astype(_NP_BOX_DTYPE).item().date()
         except AttributeError:
-            x = numpy.datetime64(x, "ns")
+            x = numpy.datetime64(
+                x, "ns"
+            )  # Integers are stored with nanosecond precision.
             return x.astype(_NP_BOX_DTYPE).item().date()
 
     def astype(self, dtype, copy=True):
