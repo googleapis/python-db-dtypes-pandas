@@ -78,6 +78,8 @@ class BaseDatetimeArray(
         return super().astype(dtype, copy=copy)
 
     def _cmp_method(self, other, op):
+        """Compare array values, for use in OpsMixin."""
+
         if is_scalar(other) and (pandas.isna(other) or type(other) == self.dtype.type):
             other = type(self)([other])
 
