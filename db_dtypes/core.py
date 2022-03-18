@@ -121,6 +121,12 @@ class BaseDatetimeArray(
         """
         return self._datetime(value)
 
+    def _validate_searchsorted_value(self, value):
+        """
+        TODO: With pandas 2.0, this may be unnecessary. https://github.com/pandas-dev/pandas/pull/45544#issuecomment-1052809232
+        """
+        raise NotImplementedError("TODO TODO TODO")
+
     def any(
         self,
         *,

@@ -21,6 +21,7 @@ https://github.com/pandas-dev/pandas/blob/main/pandas/tests/extension/test_perio
 """
 
 from pandas.tests.extension import base
+import pytest
 
 
 class TestDtype(base.BaseDtypeTests):
@@ -45,3 +46,12 @@ class TestGetitem(base.BaseGetitemTests):
 
 class TestMissing(base.BaseMissingTests):
     pass
+
+
+# TODO(https://github.com/googleapis/python-db-dtypes-pandas/issues/78): Add
+# compliance tests for reduction operations.
+
+
+class TestMethods(base.BaseMethodsTests):
+    def test_combine_add(self):
+        pytest.skip("Cannot add dates.")
