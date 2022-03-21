@@ -20,8 +20,11 @@ and
 https://github.com/pandas-dev/pandas/blob/main/pandas/tests/extension/test_period.py
 """
 
+import pandas
 from pandas.tests.extension import base
 import pytest
+
+import db_dtypes
 
 
 class TestDtype(base.BaseDtypeTests):
@@ -55,3 +58,19 @@ class TestMissing(base.BaseMissingTests):
 class TestMethods(base.BaseMethodsTests):
     def test_combine_add(self):
         pytest.skip("Cannot add dates.")
+
+    @pytest.mark.parametrize("dropna", [True, False])
+    def test_value_counts(self, all_data, dropna):
+        all_data = all_data[:10]
+        if dropna:
+            # Overridden from
+            # https://github.com/pandas-dev/pandas/blob/main/pandas/tests/extension/base/methods.py
+            # to avoid difference in dtypes.
+            other = db_dtypes.DateArray(all_data[~all_data.isna()])
+        else:
+            other = all_data
+
+        result = pandas.Series(all_data).value_counts(dropna=dropna).sort_index()
+        expected = pandas.Series(other).value_counts(dropna=dropna).sort_index()
+
+        self.assert_series_equal(result, expected)
