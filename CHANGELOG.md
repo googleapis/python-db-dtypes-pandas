@@ -5,12 +5,6 @@
 
 ### ⚠ BREAKING CHANGES
 
-* * fix: address failing compliance tests in DateArray and TimeArray
-* * fix: address failing compliance tests in DateArray and TimeArray
-* * fix: address failing compliance tests in DateArray and TimeArray
-* * fix: address failing compliance tests in DateArray and TimeArray
-* * fix: address failing compliance tests in DateArray and TimeArray
-* * fix: address failing compliance tests in DateArray and TimeArray
 * dbdate and dbtime dtypes return NaT instead of None for missing values
 
 ### Features
