@@ -84,12 +84,80 @@ s.replace(["noxfile.py"], r'os.path.join\("tests", "unit"\),', "tests_path,")
 s.replace(
     ["noxfile.py"],
     r'''
+def default\(session, tests_path\):
+    # Install all test dependencies, then install this package in-place.
+
+    constraints_path = str\(
+        CURRENT_DIRECTORY / "testing" / f"constraints-{session.python}.txt"
+    \)
+    session.install\(
+        "mock",
+        "asyncmock",
+        "pytest",
+        "pytest-cov",
+        "pytest-asyncio",
+        "-c",
+        constraints_path,
+    \)
+
+    session.install\("-e", ".", "-c", constraints_path\)
+
+    # Run py.test against the unit tests.
+    session.run\(
+        "py.test",
+        "--quiet",
+        f"--junitxml={os.path.split\(tests_path\)[-1]}_{session.python}_sponge_log.xml",
+        "--cov=db_dtypes",
+        "--cov=tests/unit",
+        "--cov-append",
+        "--cov-config=.coveragerc",
+        "--cov-report=",
+        "--cov-fail-under=0",
+        tests_path,
+        *session.posargs,
+    \)
+
+
 @nox.session\(python=UNIT_TEST_PYTHON_VERSIONS\)
 def unit\(session\):
     """Run the unit test suite."""
     default\(session\)
 ''',
     r'''
+def default(session, tests_path):
+    # Install all test dependencies, then install this package in-place.
+
+    constraints_path = str(
+        CURRENT_DIRECTORY / "testing" / f"constraints-{session.python}.txt"
+    )
+    session.install(
+        "mock",
+        "asyncmock",
+        "pytest",
+        "pytest-cov",
+        "pytest-asyncio",
+        "-c",
+        constraints_path,
+    )
+
+    session.install("-e", ".", "-c", constraints_path)
+
+    # Run py.test against the unit tests.
+    session.run(
+        "py.test",
+        "--quiet",
+        f"--junitxml={os.path.split(tests_path)[-1]}_{session.python}_sponge_log.xml",
+        "--cov=db_dtypes",
+        "--cov=tests/unit",
+        "--cov-append",
+        "--cov-config=.coveragerc",
+        "--cov-report=",
+        "--cov-fail-under=0",
+        tests_path,
+        *session.posargs,
+    )
+
+
 def prerelease(session, tests_path):
     constraints_path = str(
         CURRENT_DIRECTORY / "testing" / f"constraints-{session.python}.txt"
@@ -154,7 +222,7 @@ def prerelease(session, tests_path):
     session.run(
         "py.test",
         "--quiet",
-        f"--junitxml=prerelease_unit_{session.python}_sponge_log.xml",
+        f"--junitxml={os.path.split(tests_path)[-1]}_prerelease_{session.python}_sponge_log.xml",
         "--cov=db_dtypes",
         "--cov=tests/unit",
         "--cov-append",
