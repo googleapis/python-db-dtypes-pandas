@@ -3,7 +3,7 @@ Python Client for Pandas Data Types for SQL systems (BigQuery, Spanner) API
 
 |stable| |pypi| |versions|
 
-`Pandas Data Types for SQL systems (BigQuery, Spanner) API`_: 
+`Pandas Data Types for SQL systems (BigQuery, Spanner) API`_: Pandas extension data types for data from SQL systems such as BigQuery.
 
 - `Client Library Documentation`_
 - `Product Documentation`_
@@ -14,9 +14,9 @@ Python Client for Pandas Data Types for SQL systems (BigQuery, Spanner) API
    :target: https://pypi.org/project/db-dtypes/
 .. |versions| image:: https://img.shields.io/pypi/pyversions/db-dtypes.svg
    :target: https://pypi.org/project/db-dtypes/
-.. _Pandas Data Types for SQL systems (BigQuery, Spanner) API: 
+.. _Pandas Data Types for SQL systems (BigQuery, Spanner) API: https://pandas.pydata.org/pandas-docs/stable/ecosystem.html#ecosystem-extensions
 .. _Client Library Documentation: https://cloud.google.com/python/docs/reference//latest
-.. _Product Documentation:  
+.. _Product Documentation:  https://pandas.pydata.org/pandas-docs/stable/ecosystem.html#ecosystem-extensions
 
 Quick Start
 -----------
@@ -30,7 +30,7 @@ In order to use this library, you first need to go through the following steps:
 
 .. _Select or create a Cloud Platform project.: https://console.cloud.google.com/project
 .. _Enable billing for your project.: https://cloud.google.com/billing/docs/how-to/modify-project#enable_billing_for_a_project
-.. _Enable the Pandas Data Types for SQL systems (BigQuery, Spanner) API.:  
+.. _Enable the Pandas Data Types for SQL systems (BigQuery, Spanner) API.:  https://pandas.pydata.org/pandas-docs/stable/ecosystem.html#ecosystem-extensions
 .. _Setup Authentication.: https://googleapis.dev/python/google-api-core/latest/auth.html
 
 Installation
@@ -99,5 +99,5 @@ Next Steps
 -  View this `README`_ to see the full list of Cloud
    APIs that we cover.
 
-.. _Pandas Data Types for SQL systems (BigQuery, Spanner) API Product documentation:  
+.. _Pandas Data Types for SQL systems (BigQuery, Spanner) API Product documentation:  https://pandas.pydata.org/pandas-docs/stable/ecosystem.html#ecosystem-extensions
 .. _README: https://github.com/googleapis/google-cloud-python/blob/main/README.rst
