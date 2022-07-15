@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.3](https://github.com/googleapis/python-db-dtypes-pandas/compare/v1.0.2...v1.0.3) (2022-07-15)
+
+
+### Bug Fixes
+
+* require python 3.7+ ([#125](https://github.com/googleapis/python-db-dtypes-pandas/issues/125)) ([bce01df](https://github.com/googleapis/python-db-dtypes-pandas/commit/bce01dfe92815ea478e1db4166e629062ec5ff97))
+
 ## [1.0.2](https://github.com/googleapis/python-db-dtypes-pandas/compare/v1.0.1...v1.0.2) (2022-06-03)
 
 
