@@ -274,8 +274,9 @@ class DateArray(core.BaseDatetimeArray):
             )
             if pandas.Timestamp.min < dateObj < pandas.Timestamp.max:
                 return dateObj.to_datetime64()
-            else:
-                raise OutOfBoundsDatetime("Out of bounds", scalar)
+            else:  # pragma: NO COVER
+                # TODO(#166): Include these lines in coverage when pandas 2.0 is released.
+                raise OutOfBoundsDatetime("Out of bounds", scalar)  # pragma: NO COVER
         else:
             raise TypeError("Invalid value type", scalar)
 
