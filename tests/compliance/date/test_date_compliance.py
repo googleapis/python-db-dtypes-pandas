@@ -99,7 +99,7 @@ class TestMethods(base.BaseMethodsTests):
     def test_hash_pandas_object(self):
         pytest.xfail(
             reason="""Causes a breakage in the compliance test suite. Needs
-            further investigation."""
+            further investigation. See issues 182, 183, 185."""
         )
 
 
