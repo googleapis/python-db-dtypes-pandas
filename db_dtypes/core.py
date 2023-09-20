@@ -90,10 +90,12 @@ class BaseDatetimeArray(
     def _cmp_method(self, other, op):
         """Compare array values, for use in OpsMixin."""
 
-        if is_scalar(other) and (pandas.isna(other) or type(other) is self.dtype.type):
+        if is_scalar(other) and (
+            pandas.isna(other) or isinstance(other, self.dtype.type)
+        ):
             other = type(self)([other])
 
-        if type(other) is type(self):
+        if type(other) is not type(self):
             return NotImplemented
 
         oshape = getattr(other, "shape", None)
