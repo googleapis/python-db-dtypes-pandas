@@ -26,6 +26,10 @@ import warnings
 
 import nox
 
+# Pin flake8 to 6.0.0
+# See https://github.com/googleapis/python-db-dtypes-pandas/issues/199
+FLAKE8_VERSION = "flake8==6.0.0"
+
 BLACK_VERSION = "black==22.3.0"
 ISORT_VERSION = "isort==5.10.1"
 LINT_PATHS = ["docs", "db_dtypes", "tests", "noxfile.py", "setup.py"]
@@ -84,7 +88,7 @@ def lint(session):
     Returns a failure if the linters find linting errors or sufficiently
     serious code quality issues.
     """
-    session.install("flake8", BLACK_VERSION)
+    session.install(FLAKE8_VERSION, BLACK_VERSION)
     session.run(
         "black",
         "--check",
@@ -283,6 +287,7 @@ def unit_prerelease(session):
 
 
 def install_systemtest_dependencies(session, *constraints):
+
     # Use pre-release gRPC for system tests.
     # Exclude version 1.52.0rc1 which has a known issue.
     # See https://github.com/grpc/grpc/issues/32163
