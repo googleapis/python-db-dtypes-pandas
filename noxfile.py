@@ -170,6 +170,9 @@ def default(session, tests_path):
     )
     install_unittest_dependencies(session, "-c", constraints_path)
 
+    # list installed packages
+    session.run("python", "-m", "pip", "list")
+
     # Run py.test against the unit tests.
     session.run(
         "py.test",
