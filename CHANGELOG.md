@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.1](https://github.com/googleapis/python-db-dtypes-pandas/compare/v1.2.0...v1.2.1) (2024-06-27)
+
+
+### Documentation
+
+* Add summary_overview template ([#264](https://github.com/googleapis/python-db-dtypes-pandas/issues/264)) ([a97c341](https://github.com/googleapis/python-db-dtypes-pandas/commit/a97c34198cbed37c8ff8ea683d485ebe36b804d7))
+
 ## [1.2.0](https://github.com/googleapis/python-db-dtypes-pandas/compare/v1.1.1...v1.2.0) (2023-12-10)
 
 
