@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright 2024 Google LLC
+# Copyright 2023 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -162,27 +162,13 @@ def install_unittest_dependencies(session, *constraints):
         session.install("-e", ".", *constraints)
 
 
-@nox.session(python=UNIT_TEST_PYTHON_VERSIONS)
-@nox.parametrize(
-    "protobuf_implementation",
-    ["python", "upb", "cpp"],
-)
-def unit(session, protobuf_implementation):
+def default(session, tests_path):
     # Install all test dependencies, then install this package in-place.
-
-    if protobuf_implementation == "cpp" and session.python in ("3.11", "3.12"):
-        session.skip("cpp implementation is not supported in python 3.11+")
 
     constraints_path = str(
         CURRENT_DIRECTORY / "testing" / f"constraints-{session.python}.txt"
     )
     install_unittest_dependencies(session, "-c", constraints_path)
-
-    # TODO(https://github.com/googleapis/synthtool/issues/1976):
-    # Remove the 'cpp' implementation once support for Protobuf 3.x is dropped.
-    # The 'cpp' implementation requires Protobuf<4.
-    if protobuf_implementation == "cpp":
-        session.install("protobuf<4")
 
     # Run py.test against the unit tests.
     session.run(
@@ -197,10 +183,110 @@ def unit(session, protobuf_implementation):
         "--cov-fail-under=0",
         tests_path,
         *session.posargs,
-        env={
-            "PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION": protobuf_implementation,
-        },
     )
+
+
+def prerelease(session, tests_path):
+    constraints_path = str(
+        CURRENT_DIRECTORY / "testing" / f"constraints-{session.python}.txt"
+    )
+
+    # PyArrow prerelease packages are published to an alternative PyPI host.
+    # https://arrow.apache.org/docs/python/install.html#installing-nightly-packages
+    session.install(
+        "--extra-index-url",
+        "https://pypi.fury.io/arrow-nightlies/",
+        "--prefer-binary",
+        "--pre",
+        "--upgrade",
+        "pyarrow",
+    )
+    # Avoid pandas==2.2.0rc0 as this version causes PyArrow to fail. Once newer
+    # prerelease comes out, this constraint can be removed. See
+    # https://github.com/googleapis/python-db-dtypes-pandas/issues/234
+    session.install(
+        "--extra-index-url",
+        "https://pypi.anaconda.org/scipy-wheels-nightly/simple",
+        "--prefer-binary",
+        "--pre",
+        "--upgrade",
+        "pandas!=2.2.0rc0",
+    )
+    session.install(
+        "mock",
+        "asyncmock",
+        "pytest",
+        "pytest-cov",
+        "pytest-asyncio",
+        "-c",
+        constraints_path,
+    )
+
+    # Because we test minimum dependency versions on the minimum Python
+    # version, the first version we test with in the unit tests sessions has a
+    # constraints file containing all dependencies and extras.
+    with open(
+        CURRENT_DIRECTORY
+        / "testing"
+        / f"constraints-{UNIT_TEST_PYTHON_VERSIONS[0]}.txt",
+        encoding="utf-8",
+    ) as constraints_file:
+        constraints_text = constraints_file.read()
+
+    # Ignore leading whitespace and comment lines.
+    deps = [
+        match.group(1)
+        for match in re.finditer(
+            r"^\s*(\S+)(?===\S+)", constraints_text, flags=re.MULTILINE
+        )
+    ]
+
+    # We use --no-deps to ensure that pre-release versions aren't overwritten
+    # by the version ranges in setup.py.
+    session.install(*deps)
+    session.install("--no-deps", "-e", ".")
+
+    # Print out prerelease package versions.
+    session.run("python", "-m", "pip", "freeze")
+
+    # Run py.test against the unit tests.
+    session.run(
+        "py.test",
+        "--quiet",
+        f"--junitxml={os.path.split(tests_path)[-1]}_prerelease_{session.python}_sponge_log.xml",
+        "--cov=db_dtypes",
+        "--cov=tests/unit",
+        "--cov-append",
+        "--cov-config=.coveragerc",
+        "--cov-report=",
+        "--cov-fail-under=0",
+        tests_path,
+        *session.posargs,
+    )
+
+
+@nox.session(python=UNIT_TEST_PYTHON_VERSIONS[-1])
+def compliance(session):
+    """Run the compliance test suite."""
+    default(session, os.path.join("tests", "compliance"))
+
+
+@nox.session(python=UNIT_TEST_PYTHON_VERSIONS[-1])
+def compliance_prerelease(session):
+    """Run the compliance test suite with prerelease dependencies."""
+    prerelease(session, os.path.join("tests", "compliance"))
+
+
+@nox.session(python=UNIT_TEST_PYTHON_VERSIONS)
+def unit(session):
+    """Run the unit test suite."""
+    default(session, os.path.join("tests", "unit"))
+
+
+@nox.session(python=UNIT_TEST_PYTHON_VERSIONS[-1])
+def unit_prerelease(session):
+    """Run the unit test suite with prerelease dependencies."""
+    prerelease(session, os.path.join("tests", "unit"))
 
 
 def install_systemtest_dependencies(session, *constraints):
@@ -371,15 +457,8 @@ def docfx(session):
 
 
 @nox.session(python=SYSTEM_TEST_PYTHON_VERSIONS)
-@nox.parametrize(
-    "protobuf_implementation",
-    ["python", "upb", "cpp"],
-)
-def prerelease_deps(session, protobuf_implementation):
+def prerelease_deps(session):
     """Run all tests with prerelease versions of dependencies installed."""
-
-    if protobuf_implementation == "cpp" and session.python in ("3.11", "3.12"):
-        session.skip("cpp implementation is not supported in python 3.11+")
 
     # Install all dependencies
     session.install("-e", ".[all, tests, tracing]")
@@ -415,9 +494,9 @@ def prerelease_deps(session, protobuf_implementation):
         "protobuf",
         # dependency of grpc
         "six",
-        "grpc-google-iam-v1",
         "googleapis-common-protos",
-        "grpcio",
+        # Exclude version 1.52.0rc1 which has a known issue. See https://github.com/grpc/grpc/issues/32163
+        "grpcio!=1.52.0rc1",
         "grpcio-status",
         "google-api-core",
         "google-auth",
@@ -443,13 +522,7 @@ def prerelease_deps(session, protobuf_implementation):
     session.run("python", "-c", "import grpc; print(grpc.__version__)")
     session.run("python", "-c", "import google.auth; print(google.auth.__version__)")
 
-    session.run(
-        "py.test",
-        "tests/unit",
-        env={
-            "PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION": protobuf_implementation,
-        },
-    )
+    session.run("py.test", "tests/unit")
 
     system_test_path = os.path.join("tests", "system.py")
     system_test_folder_path = os.path.join("tests", "system")
@@ -462,9 +535,6 @@ def prerelease_deps(session, protobuf_implementation):
             f"--junitxml=system_{session.python}_sponge_log.xml",
             system_test_path,
             *session.posargs,
-            env={
-                "PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION": protobuf_implementation,
-            },
         )
     if os.path.exists(system_test_folder_path):
         session.run(
@@ -473,7 +543,4 @@ def prerelease_deps(session, protobuf_implementation):
             f"--junitxml=system_{session.python}_sponge_log.xml",
             system_test_folder_path,
             *session.posargs,
-            env={
-                "PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION": protobuf_implementation,
-            },
         )
