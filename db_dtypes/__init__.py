@@ -28,6 +28,7 @@ import pyarrow
 import pyarrow.compute
 
 from db_dtypes import core
+from db_dtypes.json import JSONArray, JSONDtype
 from db_dtypes.version import __version__
 
 date_dtype_name = "dbdate"
@@ -341,6 +342,8 @@ __all__ = [
     "__version__",
     "DateArray",
     "DateDtype",
+    "JSONDtype",
+    "JSONArray",
     "TimeArray",
     "TimeDtype",
 ]
