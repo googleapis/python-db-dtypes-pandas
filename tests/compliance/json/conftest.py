@@ -15,26 +15,21 @@
 import collections
 from collections import UserDict, abc
 import operator
+import string
 import sys
-
-import numpy as np
-import pytest
 from typing import TYPE_CHECKING, Any
 
+import numpy as np
 import pandas as pd
 import pandas._testing as tm
-import string
 from pandas.tests.extension import base
+import pytest
 
 from db_dtypes import JSONArray, JSONDtype
 
-from collections import (
-    UserDict,
-    abc,
-)
-
 if TYPE_CHECKING:
     from collections.abc import Mapping
+
 
 def make_data():
     # TODO: Use a regular dict. See _NDFrameIndexer._setitem_with_indexer
@@ -128,6 +123,7 @@ def data_for_grouping():
         ]
     )
 
+
 @pytest.fixture
 def data_repeated(data):
     """
@@ -152,6 +148,7 @@ def data_repeated(data):
 
 
 _all_numeric_accumulations = ["cumsum", "cumprod", "cummin", "cummax"]
+
 
 @pytest.fixture(params=_all_numeric_accumulations)
 def all_numeric_accumulations(request):
@@ -203,12 +200,14 @@ def all_arithmetic_operators(request):
     """
     return request.param
 
+
 @pytest.fixture
 def na_value():
     """
     The scalar missing value for this type. Default 'None'.
     """
     return UserDict()
+
 
 @pytest.fixture(params=["data", "data_missing"])
 def all_data(request, data, data_missing):
@@ -220,4 +219,3 @@ def all_data(request, data, data_missing):
         return data
     elif request.param == "data_missing":
         return data_missing
-
