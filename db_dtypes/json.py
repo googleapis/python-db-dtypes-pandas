@@ -102,7 +102,9 @@ class JSONArray(pd.api.extensions.ExtensionArray):
     def __init__(self, values, dtype=None, copy=False) -> None:
         for val in values:
             if not isinstance(val, self.dtype.type):
-                raise TypeError(f"All values must be of type {str(self.dtype.type)}: actual {type(val)}")
+                raise TypeError(
+                    f"All values must be of type {str(self.dtype.type)}: actual {type(val)}"
+                )
         self.data = values
 
         # Some aliases for common attribute names to ensure pandas supports

@@ -22,15 +22,14 @@ https://github.com/pandas-dev/pandas/blob/main/pandas/tests/extension/test_perio
 
 import collections
 import operator
+import string
 import sys
 
 import numpy as np
-import pytest
-
 import pandas as pd
 import pandas._testing as tm
-import string
 from pandas.tests.extension import base
+import pytest
 
 from db_dtypes import JSONArray, JSONDtype
 
