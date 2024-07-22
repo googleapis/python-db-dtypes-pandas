@@ -30,16 +30,18 @@ import pyarrow.compute as pc
 
 @pd.api.extensions.register_extension_dtype
 class JSONDtype(pd.api.extensions.ExtensionDtype):
-    """Extension dtype for JSON data."""
+    """Extension dtype for BigQuery JSON data."""
 
     name = "dbjson"
 
     @property
     def na_value(self) -> pd.NA:
+        """Default NA value to use for this type."""
         return pd.NA
 
     @property
     def type(self) -> type[str]:
+        """Return the scalar type for the array, e.g. int."""
         return dict
 
     @property
@@ -62,7 +64,9 @@ class JSONDtype(pd.api.extensions.ExtensionDtype):
 
 
 class JSONArray(ArrowExtensionArray):
-    """Extension array containing JSON data."""
+    """Extension array that handles BigQuery JSON data, leveraging a string-based
+    pyarrow array for storage. It enables seamless conversion to JSON objects when
+    accessing individual elements."""
 
     _dtype = JSONDtype()
 
@@ -88,18 +92,7 @@ class JSONArray(ArrowExtensionArray):
     def _box_pa(
         cls, value, pa_type: pa.DataType | None = None
     ) -> pa.Array | pa.ChunkedArray | pa.Scalar:
-        """
-        Box value into a pyarrow Array, ChunkedArray or Scalar.
-
-        Parameters
-        ----------
-        value : any
-        pa_type : pa.DataType | None
-
-        Returns
-        -------
-        pa.Array or pa.ChunkedArray or pa.Scalar
-        """
+        """Box value into a pyarrow Array, ChunkedArray or Scalar."""
         if isinstance(value, pa.Scalar) or not (
             is_list_like(value) and not is_dict_like(value)
         ):
@@ -108,18 +101,7 @@ class JSONArray(ArrowExtensionArray):
 
     @classmethod
     def _box_pa_scalar(cls, value, pa_type: pa.DataType | None = None) -> pa.Scalar:
-        """
-        Box value into a pyarrow Scalar.
-
-        Parameters
-        ----------
-        value : any
-        pa_type : pa.DataType | None
-
-        Returns
-        -------
-        pa.Scalar
-        """
+        """Box value into a pyarrow Scalar."""
         value = JSONArray._seralizate_json(value)
         pa_scalar = super()._box_pa_scalar(value, pa_type)
         if pa.types.is_string(pa_scalar.type) and pa_type is None:
@@ -130,18 +112,7 @@ class JSONArray(ArrowExtensionArray):
     def _box_pa_array(
         cls, value, pa_type: pa.DataType | None = None, copy: bool = False
     ) -> pa.Array | pa.ChunkedArray:
-        """
-        Box value into a pyarrow Array or ChunkedArray.
-
-        Parameters
-        ----------
-        value : Sequence
-        pa_type : pa.DataType | None
-
-        Returns
-        -------
-        pa.Array or pa.ChunkedArray
-        """
+        """Box value into a pyarrow Array or ChunkedArray."""
         if (
             not isinstance(value, cls)
             and not isinstance(value, (pa.Array, pa.ChunkedArray))
@@ -155,18 +126,7 @@ class JSONArray(ArrowExtensionArray):
 
     @classmethod
     def _from_sequence(cls, scalars, *, dtype=None, copy=False):
-        # TODO: check _from_arrow APIs etc.
-        # from pandas.core.arrays.masked import BaseMaskedArray
-
-        # if isinstance(scalars, BaseMaskedArray):
-        #     # avoid costly conversion to object dtype in ensure_string_array and
-        #     # numerical issues with Float32Dtype
-        #     na_values = scalars._mask
-        #     result = scalars._data
-        #     # result = lib.ensure_string_array(result, copy=copy, convert_na_value=False)
-        #     return cls(pa.array(result, mask=na_values, type=pa.large_string()))
-        # elif isinstance(scalars, (pa.Array, pa.ChunkedArray)):
-        #     return cls(pc.cast(scalars, pa.large_string()))
+        """Construct a new ExtensionArray from a sequence of scalars."""
         result = []
         for scalar in scalars:
             result.append(JSONArray._seralizate_json(scalar))
@@ -176,10 +136,12 @@ class JSONArray(ArrowExtensionArray):
     def _from_sequence_of_strings(
         cls, strings, *, dtype: ExtensionDtype, copy: bool = False
     ) -> JSONArray:
+        """Construct a new ExtensionArray from a sequence of strings."""
         return cls._from_sequence(strings, dtype=dtype, copy=copy)
 
     @staticmethod
     def _seralizate_json(value):
+        """A static method that converts a JSON value into a string representation."""
         if isinstance(value, str) or pd.isna(value):
             return value
         else:
@@ -189,6 +151,7 @@ class JSONArray(ArrowExtensionArray):
 
     @staticmethod
     def _deserialize_json(value):
+        """A static method that converts a JSON string back into its original value."""
         if not pd.isna(value):
             return json.loads(value)
         else:
@@ -200,40 +163,24 @@ class JSONArray(ArrowExtensionArray):
         return self._dtype
 
     def __contains__(self, key) -> bool:
+        """Return for `item in self`."""
         return super().__contains__(JSONArray._seralizate_json(key))
 
     def insert(self, loc: int, item) -> JSONArray:
+        """
+        Make new ExtensionArray inserting new item at location. Follows Python
+        list.append semantics for negative values.
+        """
         val = JSONArray._seralizate_json(item)
         return super().insert(loc, val)
 
     @classmethod
     def _from_factorized(cls, values, original):
+        """Reconstruct an ExtensionArray after factorization."""
         return cls._from_sequence(values, dtype=original.dtype)
 
     def __getitem__(self, item):
-        """Select a subset of self.
-
-        Parameters
-        ----------
-        item : int, slice, or ndarray
-            * int: The position in 'self' to get.
-            * slice: A slice object, where 'start', 'stop', and 'step' are
-              integers or None
-            * ndarray: A 1-d boolean NumPy ndarray the same length as 'self'
-
-        Returns
-        -------
-        item : scalar or ExtensionArray
-
-        Notes
-        -----
-        For scalar ``item``, return a scalar value suitable for the array's
-        type. This should be an instance of ``self.dtype.type``.
-        For slice ``key``, return an instance of ``ExtensionArray``, even
-        if the slice is length 0 or 1.
-        For a boolean mask, return an instance of ``ExtensionArray``, filtered
-        to the values where ``item`` is True.
-        """
+        """Select a subset of self."""
         item = check_array_indexer(self, item)
 
         if isinstance(item, np.ndarray):
@@ -283,9 +230,7 @@ class JSONArray(ArrowExtensionArray):
                 return scalar
 
     def __iter__(self):
-        """
-        Iterate over elements of the array.
-        """
+        """Iterate over elements of the array."""
         for value in self._pa_array:
             val = JSONArray._deserialize_json(value.as_py())
             if val is None:
@@ -294,26 +239,8 @@ class JSONArray(ArrowExtensionArray):
                 yield val
 
     @classmethod
-    def _result_converter(cls, values, na=None):
-        return pd.BooleanDtype().__from_arrow__(values)
-
-    @classmethod
     def _concat_same_type(cls, to_concat) -> JSONArray:
-        """
-        Concatenate multiple JSONArray.
-
-        Parameters
-        ----------
-        to_concat : sequence of JSONArray
-
-        Returns
-        -------
-        JSONArray
-        """
+        """Concatenate multiple JSONArray."""
         chunks = [array for ea in to_concat for array in ea._pa_array.iterchunks()]
         arr = pa.chunked_array(chunks, type=pa.large_string())
         return cls(arr)
-
-    def _pad_or_backfill(self, *, method, limit=None, copy=True):
-        # GH#56616 - test EA method without limit_area argument
-        return super()._pad_or_backfill(method=method, limit=limit, copy=copy)
