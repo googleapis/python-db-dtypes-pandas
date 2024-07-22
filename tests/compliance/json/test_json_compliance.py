@@ -392,13 +392,3 @@ class TestJSONArray(base.ExtensionTests):
     @pytest.mark.parametrize("engine", ["c", "python"])
     def test_EA_types(self, engine, data, request):
         super().test_EA_types(engine, data, request)
-
-    def test_getitem_scalar(self, data):
-        result = data[0]
-        # While JSONDtype internally stores data as pyarrow strings
-        # (equivalent to data.dtype.type), it is deliberately designed to return a
-        # dictionary as the result.
-        assert isinstance(result, dict)
-
-        result = pd.Series(data)[0]
-        assert isinstance(result, dict)
