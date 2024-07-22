@@ -139,6 +139,18 @@ class JSONArray(ArrowExtensionArray):
         """Construct a new ExtensionArray from a sequence of strings."""
         return cls._from_sequence(strings, dtype=dtype, copy=copy)
 
+    @classmethod
+    def _concat_same_type(cls, to_concat) -> JSONArray:
+        """Concatenate multiple JSONArray."""
+        chunks = [array for ea in to_concat for array in ea._pa_array.iterchunks()]
+        arr = pa.chunked_array(chunks, type=pa.large_string())
+        return cls(arr)
+
+    @classmethod
+    def _from_factorized(cls, values, original):
+        """Reconstruct an ExtensionArray after factorization."""
+        return cls._from_sequence(values, dtype=original.dtype)
+
     @staticmethod
     def _seralizate_json(value):
         """A static method that converts a JSON value into a string representation."""
@@ -173,11 +185,6 @@ class JSONArray(ArrowExtensionArray):
         """
         val = JSONArray._seralizate_json(item)
         return super().insert(loc, val)
-
-    @classmethod
-    def _from_factorized(cls, values, original):
-        """Reconstruct an ExtensionArray after factorization."""
-        return cls._from_sequence(values, dtype=original.dtype)
 
     def __getitem__(self, item):
         """Select a subset of self."""
@@ -237,10 +244,3 @@ class JSONArray(ArrowExtensionArray):
                 yield self._dtype.na_value
             else:
                 yield val
-
-    @classmethod
-    def _concat_same_type(cls, to_concat) -> JSONArray:
-        """Concatenate multiple JSONArray."""
-        chunks = [array for ea in to_concat for array in ea._pa_array.iterchunks()]
-        arr = pa.chunked_array(chunks, type=pa.large_string())
-        return cls(arr)

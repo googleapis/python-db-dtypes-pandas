@@ -22,8 +22,6 @@ from pandas.core.dtypes.cast import construct_1d_object_array_from_listlike
 from pandas.tests.extension import base
 import pytest
 
-from db_dtypes import JSONArray
-
 
 class TestJSONArray(base.ExtensionTests):
     @pytest.mark.xfail(reason="Unhashable")
@@ -83,10 +81,6 @@ class TestJSONArray(base.ExtensionTests):
     @pytest.mark.xfail(reason="Arithmetic functions is not supported for json")
     def test_arith_frame_with_scalar(self, data, all_arithmetic_operators):
         super().test_arith_frame_with_scalar(data, all_arithmetic_operators)
-
-    @pytest.mark.xfail(reason="Arithmetic functions is not supported for json")
-    def test_arith_series_with_scalar(self, data, all_arithmetic_operators):
-        super().test_arith_series_with_scalar(data, all_arithmetic_operators)
 
     @pytest.mark.xfail(reason="Arithmetic functions is not supported for json")
     def test_arith_series_with_scalar(self, data, all_arithmetic_operators):
