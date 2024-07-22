@@ -40,7 +40,7 @@ class JSONDtype(pd.api.extensions.ExtensionDtype):
 
     @property
     def type(self) -> type[str]:
-        return str
+        return dict
 
     @property
     def _is_numeric(self) -> bool:
