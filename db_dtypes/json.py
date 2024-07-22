@@ -14,14 +14,14 @@
 
 from __future__ import annotations
 
+import json
 import typing
 
 import numpy as np
 import pandas as pd
-from pandas._libs import lib
 from pandas.core.arrays.arrow.array import ArrowExtensionArray
-from pandas.core.arrays.numeric import NumericDtype
-from pandas.core.dtypes.common import is_integer, is_scalar, pandas_dtype
+from pandas.core.arrays.masked import BaseMaskedArray
+from pandas.core.dtypes.common import is_dict_like, is_integer, is_list_like, is_scalar
 from pandas.core.dtypes.dtypes import ExtensionDtype
 from pandas.core.indexers import check_array_indexer, unpack_tuple_and_ellipses
 import pyarrow as pa
@@ -85,7 +85,42 @@ class JSONArray(ArrowExtensionArray):
             )
 
     @classmethod
+    def _box_pa(
+        cls, value, pa_type: pa.DataType | None = None
+    ) -> pa.Array | pa.ChunkedArray | pa.Scalar:
+        """
+        Box value into a pyarrow Array, ChunkedArray or Scalar.
+
+        Parameters
+        ----------
+        value : any
+        pa_type : pa.DataType | None
+
+        Returns
+        -------
+        pa.Array or pa.ChunkedArray or pa.Scalar
+        """
+        if isinstance(value, pa.Scalar) or not (
+            is_list_like(value) and not is_dict_like(value)
+        ):
+            return cls._box_pa_scalar(value, pa_type)
+        return cls._box_pa_array(value, pa_type)
+
+    @classmethod
     def _box_pa_scalar(cls, value, pa_type: pa.DataType | None = None) -> pa.Scalar:
+        """
+        Box value into a pyarrow Scalar.
+
+        Parameters
+        ----------
+        value : any
+        pa_type : pa.DataType | None
+
+        Returns
+        -------
+        pa.Scalar
+        """
+        value = JSONArray._seralizate_json(value)
         pa_scalar = super()._box_pa_scalar(value, pa_type)
         if pa.types.is_string(pa_scalar.type) and pa_type is None:
             pa_scalar = pc.cast(pa_scalar, pa.large_string())
@@ -95,6 +130,24 @@ class JSONArray(ArrowExtensionArray):
     def _box_pa_array(
         cls, value, pa_type: pa.DataType | None = None, copy: bool = False
     ) -> pa.Array | pa.ChunkedArray:
+        """
+        Box value into a pyarrow Array or ChunkedArray.
+
+        Parameters
+        ----------
+        value : Sequence
+        pa_type : pa.DataType | None
+
+        Returns
+        -------
+        pa.Array or pa.ChunkedArray
+        """
+        if (
+            not isinstance(value, cls)
+            and not isinstance(value, (pa.Array, pa.ChunkedArray))
+            and not isinstance(value, BaseMaskedArray)
+        ):
+            value = [JSONArray._seralizate_json(x) for x in value]
         pa_array = super()._box_pa_array(value, pa_type)
         if pa.types.is_string(pa_array.type) and pa_type is None:
             pa_array = pc.cast(pa_array, pa.large_string())
@@ -102,20 +155,21 @@ class JSONArray(ArrowExtensionArray):
 
     @classmethod
     def _from_sequence(cls, scalars, *, dtype=None, copy=False):
-        from pandas.core.arrays.masked import BaseMaskedArray
+        # TODO: check _from_arrow APIs etc.
+        # from pandas.core.arrays.masked import BaseMaskedArray
 
-        if isinstance(scalars, BaseMaskedArray):
-            # avoid costly conversion to object dtype in ensure_string_array and
-            # numerical issues with Float32Dtype
-            na_values = scalars._mask
-            result = scalars._data
-            result = lib.ensure_string_array(result, copy=copy, convert_na_value=False)
-            return cls(pa.array(result, mask=na_values, type=pa.large_string()))
-        elif isinstance(scalars, (pa.Array, pa.ChunkedArray)):
-            return cls(pc.cast(scalars, pa.large_string()))
-
-        # convert non-na-likes to str
-        result = lib.ensure_string_array(scalars, copy=copy)
+        # if isinstance(scalars, BaseMaskedArray):
+        #     # avoid costly conversion to object dtype in ensure_string_array and
+        #     # numerical issues with Float32Dtype
+        #     na_values = scalars._mask
+        #     result = scalars._data
+        #     # result = lib.ensure_string_array(result, copy=copy, convert_na_value=False)
+        #     return cls(pa.array(result, mask=na_values, type=pa.large_string()))
+        # elif isinstance(scalars, (pa.Array, pa.ChunkedArray)):
+        #     return cls(pc.cast(scalars, pa.large_string()))
+        result = []
+        for scalar in scalars:
+            result.append(JSONArray._seralizate_json(scalar))
         return cls(pa.array(result, type=pa.large_string(), from_pandas=True))
 
     @classmethod
@@ -124,30 +178,45 @@ class JSONArray(ArrowExtensionArray):
     ) -> JSONArray:
         return cls._from_sequence(strings, dtype=dtype, copy=copy)
 
+    @staticmethod
+    def _seralizate_json(value):
+        if isinstance(value, str) or pd.isna(value):
+            return value
+        else:
+            # `sort_keys=True` sorts dictionary keys before serialization, making
+            # JSON comparisons deterministic.
+            return json.dumps(value, sort_keys=True)
+
+    @staticmethod
+    def _deserialize_json(value):
+        if not pd.isna(value):
+            return json.loads(value)
+        else:
+            return value
+
     @property
     def dtype(self) -> JSONDtype:
         """An instance of JSONDtype"""
         return self._dtype
 
+    def __contains__(self, key) -> bool:
+        return super().__contains__(JSONArray._seralizate_json(key))
+
+    # def __contains__(self, key) -> bool:
+    #     # https://github.com/pandas-dev/pandas/pull/51307#issuecomment-1426372604
+    #     if pd.isna(key) and key is not self.dtype.na_value:
+    #         if self.dtype.kind == "f" and lib.is_float(key):
+    #             return pc.any(pc.is_nan(self._pa_array)).as_py()
+
+    #         # e.g. date or timestamp types we do not allow None here to match pd.NA
+    #         return False
+    #         # TODO: maybe complex? object?
+
+    #     return bool(super().__contains__(key))
+
     def insert(self, loc: int, item) -> JSONArray:
-        if not isinstance(item, str) and not pd.isna(item):
-            raise TypeError("Scalar must be NA or str")
-        return super().insert(loc, item)
-
-    def astype(self, dtype, copy: bool = True):
-        dtype = pandas_dtype(dtype)
-
-        if dtype == self.dtype:
-            if copy:
-                return self.copy()
-            return self
-        elif isinstance(dtype, NumericDtype):
-            data = self._pa_array.cast(pa.from_numpy_dtype(dtype.numpy_dtype))
-            return dtype.__from_arrow__(data)
-        elif isinstance(dtype, np.dtype) and np.issubdtype(dtype, np.floating):
-            return self.to_numpy(dtype=dtype, na_value=np.nan)
-
-        return super().astype(dtype, copy=copy)
+        val = JSONArray._seralizate_json(item)
+        return super().insert(loc, val)
 
     @classmethod
     def _from_factorized(cls, values, original):
@@ -219,11 +288,22 @@ class JSONArray(ArrowExtensionArray):
         if isinstance(value, pa.ChunkedArray):
             return type(self)(value)
         else:
-            scalar = value.as_py()
+            scalar = JSONArray._deserialize_json(value.as_py())
             if scalar is None:
                 return self._dtype.na_value
             else:
                 return scalar
+
+    def __iter__(self):
+        """
+        Iterate over elements of the array.
+        """
+        for value in self._pa_array:
+            val = JSONArray._deserialize_json(value.as_py())
+            if val is None:
+                yield self._dtype.na_value
+            else:
+                yield val
 
     @classmethod
     def _result_converter(cls, values, na=None):
