@@ -202,18 +202,6 @@ class JSONArray(ArrowExtensionArray):
     def __contains__(self, key) -> bool:
         return super().__contains__(JSONArray._seralizate_json(key))
 
-    # def __contains__(self, key) -> bool:
-    #     # https://github.com/pandas-dev/pandas/pull/51307#issuecomment-1426372604
-    #     if pd.isna(key) and key is not self.dtype.na_value:
-    #         if self.dtype.kind == "f" and lib.is_float(key):
-    #             return pc.any(pc.is_nan(self._pa_array)).as_py()
-
-    #         # e.g. date or timestamp types we do not allow None here to match pd.NA
-    #         return False
-    #         # TODO: maybe complex? object?
-
-    #     return bool(super().__contains__(key))
-
     def insert(self, loc: int, item) -> JSONArray:
         val = JSONArray._seralizate_json(item)
         return super().insert(loc, val)
