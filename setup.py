@@ -30,10 +30,10 @@ description = "Pandas Data Types for SQL systems (BigQuery, Spanner)"
 release_status = "Development Status :: 5 - Production/Stable"
 
 dependencies = [
-    "packaging >= 17.0",
-    "pandas >= 0.24.2",
+    "packaging>=17.0",
+    "pandas>=1.5.0",
     "pyarrow>=3.0.0",
-    "numpy >= 1.16.6",
+    "numpy>=1.20.3",
 ]
 
 package_root = os.path.abspath(os.path.dirname(__file__))
@@ -63,7 +63,6 @@ setup(
         "License :: OSI Approved :: Apache Software License",
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
@@ -74,6 +73,6 @@ setup(
     ],
     platforms="Posix; MacOS X; Windows",
     install_requires=dependencies,
-    python_requires=">=3.7",
+    python_requires=">=3.8",
     tests_require=["pytest"],
 )
