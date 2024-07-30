@@ -21,7 +21,6 @@ import pandas._testing as tm
 from pandas.core.dtypes.cast import construct_1d_object_array_from_listlike
 from pandas.tests.extension import base
 import pytest
-import db_dtypes
 
 
 class TestJSONArray(base.ExtensionTests):
@@ -125,6 +124,43 @@ class TestJSONArray(base.ExtensionTests):
     @pytest.mark.skip(reason="'<' not supported between instances of 'dict' and 'dict'")
     def test_searchsorted(self, data_for_sorting, as_series):
         super().test_searchsorted(self, data_for_sorting, as_series)
+
+    def test_astype_str(self, data):
+        # Use `json.dumps(str)` instead of passing `str(obj)` directly to the super method.
+        result = pd.Series(data[:5]).astype(str)
+        expected = pd.Series(
+            [json.dumps(x, sort_keys=True) for x in data[:5]], dtype=str
+        )
+        tm.assert_series_equal(result, expected)
+
+    @pytest.mark.parametrize(
+        "nullable_string_dtype",
+        [
+            "string[python]",
+            "string[pyarrow]",
+        ],
+    )
+    def test_astype_string(self, data, nullable_string_dtype):
+        # Use `json.dumps(str)` instead of passing `str(obj)` directly to the super method.
+        result = pd.Series(data[:5]).astype(nullable_string_dtype)
+        expected = pd.Series(
+            [json.dumps(x, sort_keys=True) for x in data[:5]],
+            dtype=nullable_string_dtype,
+        )
+        tm.assert_series_equal(result, expected)
+
+    def test_array_interface(self, data):
+        result = np.array(data)
+        # Use `json.dumps(data[0])` instead of passing `data[0]` directly to the super method.
+        assert result[0] == json.dumps(data[0])
+
+        result = np.array(data, dtype=object)
+        # Use `json.dumps(x)` instead of passing `x` directly to the super method.
+        expected = np.array([json.dumps(x) for x in data], dtype=object)
+        if expected.ndim > 1:
+            # nested data, explicitly construct as 1D
+            expected = construct_1d_object_array_from_listlike(list(data))
+        tm.assert_numpy_array_equal(result, expected)
 
     @pytest.mark.xfail(reason="Setting a dict as a scalar")
     def test_fillna_series(self):
@@ -251,7 +287,6 @@ class TestJSONArray(base.ExtensionTests):
         super().test_setitem_mask_boolean_array_with_na(data, box_in_series)
 
     @pytest.mark.parametrize("setter", ["loc", "iloc"])
-    
     @pytest.mark.xfail(reason="TODO: open an issue for ArrowExtentionArray")
     def test_setitem_scalar(self, data, setter):
         super().test_setitem_scalar(data, setter)
@@ -310,3 +345,26 @@ class TestJSONArray(base.ExtensionTests):
     @pytest.mark.parametrize("engine", ["c", "python"])
     def test_EA_types(self, engine, data, request):
         super().test_EA_types(engine, data, request)
+
+    @pytest.mark.xfail(
+        reason="`to_numpy` returns serialized JSON, "
+        + "while `__getitem__` returns JSON objects."
+    )
+    def test_setitem_frame_2d_values(self, data):
+        super().test_setitem_frame_2d_values(data)
+
+    @pytest.mark.xfail(
+        reason="`to_numpy` returns serialized JSON, "
+        + "while `__getitem__` returns JSON objects."
+    )
+    def test_transpose_frame(self, data):
+        # `DataFrame.T` calls `to_numpy` to get results.
+        super().test_transpose_frame(data)
+
+    @pytest.mark.xfail(
+        reason="`to_numpy` returns serialized JSON, "
+        + "while `__getitem__` returns JSON objects."
+    )
+    def test_where_series(self, data, na_value, as_frame):
+        # `Series.where` calls `to_numpy` to get results.
+        super().test_where_series(data, na_value, as_frame)

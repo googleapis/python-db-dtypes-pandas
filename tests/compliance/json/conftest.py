@@ -14,6 +14,7 @@
 
 
 import json
+import random
 
 import numpy as np
 import pandas as pd
@@ -24,18 +25,29 @@ from db_dtypes import JSONArray, JSONDtype
 
 
 def make_data():
-    # Sample data with varied lengths.
+    # Since the `np.array` constructor needs a consistent shape after the first
+    # dimension, the samples data in this instance doesn't include the array type.
     samples = [
-        {"id": 1, "bool_value": True},  # Boolean
-        {"id": 2, "float_num": 3.14159},  # Floating
-        {"id": 3, "date": "2024-07-16"},  # Dates (as strings)
-        {"id": 4, "null_field": None},  # Null
-        {"list_data": [10, 20, 30]},  # Lists
-        {"person": {"name": "Alice", "age": 35}},  # Nested objects
+        True,  # Boolean
+        100,  # Int
+        0.98,  # Float
+        "str",  # String
+        {"bool_value": True},  # Dict with a boolean
+        {"float_num": 3.14159},  # Dict with a float
+        {"date": "2024-07-16"},  # Dict with a date (as strings)
+        {"null_field": None},  # Dict with a null
+        {"list_data": [10, 20, 30]},  # Dict with a list
+        {"person": {"name": "Alice", "age": 35}},  # Dict with nested objects
         {"address": {"street": "123 Main St", "city": "Anytown"}},
         {"order": {"items": ["book", "pen"], "total": 15.99}},
     ]
-    return np.random.default_rng(2).choice(samples, size=100)
+    data = np.random.default_rng(2).choice(samples, size=100)
+    # This replaces a single data item with an array. We are skipping the first two
+    # items to avoid some `setitem` tests failed, because setting with a list is
+    # ambiguity in this context.
+    id = random.randint(3, 99)
+    data[id] = [0.1, 0.2]  # Array
+    return data
 
 
 @pytest.fixture
@@ -47,16 +59,6 @@ def dtype():
 def data():
     """Length-100 PeriodArray for semantics test."""
     data = make_data()
-
-    # Why the while loop? NumPy is unable to construct an ndarray from
-    # equal-length ndarrays. Many of our operations involve coercing the
-    # EA to an ndarray of objects. To avoid random test failures, we ensure
-    # that our data is coercible to an ndarray. Several tests deal with only
-    # the first two elements, so that's what we'll check.
-
-    while len(data[0]) == len(data[1]):
-        print(data)
-        data = make_data()
 
     return JSONArray._from_sequence(data)
 

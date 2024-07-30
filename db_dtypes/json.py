@@ -34,6 +34,7 @@ ARROW_CMP_FUNCS = {
     "ge": pyarrow.compute.greater_equal,
 }
 
+
 @pd.api.extensions.register_extension_dtype
 class JSONDtype(pd.api.extensions.ExtensionDtype):
     """Extension dtype for BigQuery JSON data."""
@@ -90,6 +91,7 @@ class JSONArray(arrays.ArrowExtensionArray):
         cls, value, pa_type: pa.DataType | None = None
     ) -> pa.Array | pa.ChunkedArray | pa.Scalar:
         """Box value into a pyarrow Array, ChunkedArray or Scalar."""
+
         if isinstance(value, pa.Scalar) or not (
             common.is_list_like(value) and not common.is_dict_like(value)
         ):
@@ -163,7 +165,7 @@ class JSONArray(arrays.ArrowExtensionArray):
     @staticmethod
     def _serialize_json(value):
         """A static method that converts a JSON value into a string representation."""
-        if pd.isna(value):
+        if not common.is_list_like(value) and pd.isna(value):
             return value
         else:
             # `sort_keys=True` sorts dictionary keys before serialization, making
@@ -254,40 +256,3 @@ class JSONArray(arrays.ArrowExtensionArray):
         if name in ["min", "max"]:
             raise TypeError("JSONArray does not support min/max reducntion.")
         super()._reduce(name, skipna=skipna, keepdims=keepdims, **kwargs)
-
-    def __array__(
-        self, dtype = None, copy = None
-    ) -> np.ndarray:
-        """Correctly construct numpy arrays when passed to `np.asarray()`."""
-        return self.to_numpy(dtype=dtype)
-
-    def to_numpy(self, dtype = None, copy = False, na_value = pd.NA) -> np.ndarray:
-        dtype, na_value = self._to_numpy_dtype_inference(dtype, na_value, self._hasna)
-        pa_type = self._pa_array.type
-        if not self._hasna or pd.isna(na_value) or pa.types.is_null(pa_type):
-            data = self
-        else:
-            data = self.fillna(na_value)
-        result = np.array(list(data), dtype=dtype)
-        
-        if data._hasna:
-            result[data.isna()] = na_value
-        return result
-
-    def _to_numpy_dtype_inference(
-        self, dtype, na_value, hasna
-    ):
-        if dtype is not None:
-            dtype = np.dtype(dtype)
-
-        if dtype is None or not hasna:
-            na_value = self.dtype.na_value
-        elif dtype.kind == "f":  # type: ignore[union-attr]
-            na_value = np.nan
-        elif dtype.kind == "M":  # type: ignore[union-attr]
-            na_value = np.datetime64("nat")
-        elif dtype.kind == "m":  # type: ignore[union-attr]
-            na_value = np.timedelta64("nat")
-        else:
-            na_value = self.dtype.na_value
-        return dtype, na_value
