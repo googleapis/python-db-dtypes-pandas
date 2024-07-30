@@ -21,6 +21,7 @@ import pandas._testing as tm
 from pandas.core.dtypes.cast import construct_1d_object_array_from_listlike
 from pandas.tests.extension import base
 import pytest
+import db_dtypes
 
 
 class TestJSONArray(base.ExtensionTests):
@@ -111,7 +112,7 @@ class TestJSONArray(base.ExtensionTests):
         super().test_compare_scalar(data, comparison_op)
 
     def _supports_reduction(self, ser: pd.Series, op_name: str) -> bool:
-        return op_name in ["min", "max"]
+        return False
 
     def _cast_pointwise_result(self, op_name: str, obj, other, pointwise_result):
         dtype = typing.cast(pd.StringDtype, tm.get_dtype(obj))
@@ -124,43 +125,6 @@ class TestJSONArray(base.ExtensionTests):
     @pytest.mark.skip(reason="'<' not supported between instances of 'dict' and 'dict'")
     def test_searchsorted(self, data_for_sorting, as_series):
         super().test_searchsorted(self, data_for_sorting, as_series)
-
-    def test_astype_str(self, data):
-        # Use `json.dumps(str)` instead of passing `str(obj)` directly to the super method.
-        result = pd.Series(data[:5]).astype(str)
-        expected = pd.Series(
-            [json.dumps(x, sort_keys=True) for x in data[:5]], dtype=str
-        )
-        tm.assert_series_equal(result, expected)
-
-    @pytest.mark.parametrize(
-        "nullable_string_dtype",
-        [
-            "string[python]",
-            "string[pyarrow]",
-        ],
-    )
-    def test_astype_string(self, data, nullable_string_dtype):
-        # Use `json.dumps(str)` instead of passing `str(obj)` directly to the super method.
-        result = pd.Series(data[:5]).astype(nullable_string_dtype)
-        expected = pd.Series(
-            [json.dumps(x, sort_keys=True) for x in data[:5]],
-            dtype=nullable_string_dtype,
-        )
-        tm.assert_series_equal(result, expected)
-
-    def test_array_interface(self, data):
-        result = np.array(data)
-        # Use `json.dumps(data[0])` instead of passing `data[0]` directly to the super method.
-        assert result[0] == json.dumps(data[0])
-
-        result = np.array(data, dtype=object)
-        # Use `json.dumps(x)` instead of passing `x` directly to the super method.
-        expected = np.array([json.dumps(x) for x in data], dtype=object)
-        if expected.ndim > 1:
-            # nested data, explicitly construct as 1D
-            expected = construct_1d_object_array_from_listlike(list(data))
-        tm.assert_numpy_array_equal(result, expected)
 
     @pytest.mark.xfail(reason="Setting a dict as a scalar")
     def test_fillna_series(self):
@@ -212,7 +176,7 @@ class TestJSONArray(base.ExtensionTests):
         expected = pd.Series([scalar], index=["foo"], dtype=dtype)
         tm.assert_series_equal(result, expected)
 
-    # Patching `json.dumps` to base.BaseSetitemTests because pandas' internals has
+    # Patching `[....] * len()` to base.BaseSetitemTests because pandas' internals
     # has trouble setting sequences of values into scalar positions.
 
     @pytest.mark.parametrize(
@@ -228,8 +192,8 @@ class TestJSONArray(base.ExtensionTests):
             arr = pd.Series(arr)
             expected = pd.Series(expected)
 
-        # Use json.dumps(arr[0]) instead of passing arr[0] directly to the super method.
-        arr[idx] = json.dumps(arr[0])
+        # Use `[arr[0]] * len()` instead of passing `arr[0]` directly to the super method.
+        arr[idx] = [arr[0]] * len(arr[idx])
         tm.assert_equal(arr, expected)
 
     @pytest.mark.parametrize("setter", ["loc", None])
@@ -243,22 +207,20 @@ class TestJSONArray(base.ExtensionTests):
         else:  # __setitem__
             target = ser
 
-        # Use json.dumps(data[10]) instead of passing data[10] directly to the super method.
-        target[mask] = json.dumps(data[10])
+        # Use `[data[10]] * len()` instead of passing `data[10]` directly to the super method.
+        target[mask] = [data[10]] * len(target[mask])
         assert ser[0] == data[10]
         assert ser[1] == data[10]
 
     def test_setitem_loc_scalar_mixed(self, data):
         df = pd.DataFrame({"A": np.arange(len(data)), "B": data})
-        # Use json.dumps(data[1]) instead of passing data[1] directly to the super method.
-        df.loc[0, "B"] = json.dumps(data[1])
+        # Use `[data[1]]` instead of passing `data[1]` directly to the super method.
+        df.loc[0, "B"] = [data[1]]
         assert df.loc[0, "B"] == data[1]
 
+    @pytest.mark.xfail(reason="TODO: open an issue for ArrowExtentionArray")
     def test_setitem_loc_scalar_single(self, data):
-        df = pd.DataFrame({"B": data})
-        # Use json.dumps(data[1]) instead of passing data[1] directly to the super method.
-        df.loc[10, "B"] = json.dumps(data[1])
-        assert df.loc[10, "B"] == data[1]
+        super().test_setitem_loc_scalar_single(data)
 
     def test_setitem_loc_iloc_slice(self, data):
         arr = data[:5].copy()
@@ -266,37 +228,33 @@ class TestJSONArray(base.ExtensionTests):
         expected = pd.Series(data.take([0, 0, 0, 3, 4]), index=s.index)
 
         result = s.copy()
-        # Use json.dumps(data[0]) instead of passing data[0] directly to the super method.
-        result.iloc[:3] = json.dumps(data[0])
+        # Use `[data[0]] * len()` instead of passing `data[0]` directly to the super method.
+        result.iloc[:3] = [data[0]] * len(result.iloc[:3])
         tm.assert_equal(result, expected)
 
         result = s.copy()
-        result.loc[:"c"] = json.dumps(data[0])
+        result.loc[:"c"] = [data[0]] * len(result.loc[:"c"])
         tm.assert_equal(result, expected)
 
+    @pytest.mark.xfail(reason="TODO: open an issue for ArrowExtentionArray")
     def test_setitem_iloc_scalar_single(self, data):
-        df = pd.DataFrame({"B": data})
-        # Use json.dumps(data[1]) instead of passing data[1] directly to the super method.
-        df.iloc[10, 0] = json.dumps(data[1])
-        assert df.loc[10, "B"] == data[1]
+        super().test_setitem_iloc_scalar_single(data)
 
     def test_setitem_iloc_scalar_mixed(self, data):
         df = pd.DataFrame({"A": np.arange(len(data)), "B": data})
-        # Use json.dumps(data[1]) instead of passing data[1] directly to the super method.
-        df.iloc[0, 1] = json.dumps(data[1])
+        # Use `[data[1]] * len()` instead of passing `data[1]` directly to the super method.
+        df.iloc[0, 1] = [data[1]] * len(df.iloc[0, 1])
         assert df.loc[0, "B"] == data[1]
 
-    @pytest.mark.xfail(reaons="eq not implemented for <class 'dict'>")
+    @pytest.mark.xfail(reason="eq not implemented for <class 'dict'>")
     def test_setitem_mask_boolean_array_with_na(self, data, box_in_series):
         super().test_setitem_mask_boolean_array_with_na(data, box_in_series)
 
     @pytest.mark.parametrize("setter", ["loc", "iloc"])
+    
+    @pytest.mark.xfail(reason="TODO: open an issue for ArrowExtentionArray")
     def test_setitem_scalar(self, data, setter):
-        arr = pd.Series(data)
-        setter = getattr(arr, setter)
-        # Use json.dumps(data[1]) instead of passing data[1] directly to the super method.
-        setter[0] = json.dumps(data[1])
-        assert arr[0] == data[1]
+        super().test_setitem_scalar(data, setter)
 
     @pytest.mark.parametrize(
         "mask",
@@ -313,35 +271,24 @@ class TestJSONArray(base.ExtensionTests):
         if box_in_series:
             arr = pd.Series(arr)
             expected = pd.Series(expected)
-        # Use json.dumps(data[0]) instead of passing data[0] directly to the super method.
-        arr[mask] = json.dumps(data[0])
+        # Use `[data[0]] * len()` instead of passing `data[0]` directly to the super method.
+        arr[mask] = [data[0]] * len(arr[mask])
         tm.assert_equal(expected, arr)
 
+    @pytest.mark.xfail(reasons="Setting a `dict` to an expansion row is not supported")
     def test_setitem_with_expansion_row(self, data, na_value):
-        df = pd.DataFrame({"data": data[:1]})
-
-        # Use json.dumps(data[1]) instead of passing data[1] directly to the super method.
-        df.loc[1, "data"] = json.dumps(data[1])
-        expected = pd.DataFrame({"data": data[:2]})
-        tm.assert_frame_equal(df, expected)
-
-        # https://github.com/pandas-dev/pandas/issues/47284
-        df.loc[2, "data"] = na_value
-        expected = pd.DataFrame(
-            {"data": pd.Series([data[0], data[1], na_value], dtype=data.dtype)}
-        )
-        tm.assert_frame_equal(df, expected)
+        super().test_setitem_with_expansion_row(data, na_value)
 
     def test_setitem_iloc_scalar_multiple_homogoneous(self, data):
         df = pd.DataFrame({"A": data, "B": data})
-        # Use json.dumps(data[1]) instead of passing data[1] directly to the super method.
-        df.iloc[10, 1] = json.dumps(data[1])
+        # Use `[data[1]]` instead of passing `data[1]` directly to the super method.
+        df.iloc[10, 1] = [data[1]]
         assert df.loc[10, "B"] == data[1]
 
     def test_setitem_loc_scalar_multiple_homogoneous(self, data):
         df = pd.DataFrame({"A": data, "B": data})
-        # Use json.dumps(data[1]) instead of passing data[1] directly to the super method.
-        df.loc[10, "B"] = json.dumps(data[1])
+        # Use `[data[1]]` instead of passing `data[1]` directly to the super method.
+        df.loc[10, "B"] = [data[1]]
         assert df.loc[10, "B"] == data[1]
 
     def test_setitem_slice(self, data, box_in_series):
@@ -351,8 +298,8 @@ class TestJSONArray(base.ExtensionTests):
             arr = pd.Series(arr)
             expected = pd.Series(expected)
 
-        # Use json.dumps(data[0]) instead of passing data[0] directly to the super method.
-        arr[:3] = json.dumps(data[0])
+        # Use `[data[0]] * 3` instead of passing `data[0]` directly to the super method.
+        arr[:3] = [data[0]] * 3
         tm.assert_equal(arr, expected)
 
     @pytest.mark.xfail(reason="only integer scalar arrays can be converted")

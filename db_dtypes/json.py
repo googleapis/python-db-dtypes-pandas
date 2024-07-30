@@ -23,7 +23,16 @@ import pandas.arrays as arrays
 import pandas.core.dtypes.common as common
 import pandas.core.indexers as indexers
 import pyarrow as pa
+import pyarrow.compute
 
+ARROW_CMP_FUNCS = {
+    "eq": pyarrow.compute.equal,
+    "ne": pyarrow.compute.not_equal,
+    "lt": pyarrow.compute.less,
+    "gt": pyarrow.compute.greater,
+    "le": pyarrow.compute.less_equal,
+    "ge": pyarrow.compute.greater_equal,
+}
 
 @pd.api.extensions.register_extension_dtype
 class JSONDtype(pd.api.extensions.ExtensionDtype):
@@ -130,7 +139,7 @@ class JSONArray(arrays.ArrowExtensionArray):
         result = []
         for scalar in scalars:
             result.append(JSONArray._serialize_json(scalar))
-        return cls(pa.array(result, type=pa.large_string(), from_pandas=True))
+        return cls(pa.array(result, type=pa.string(), from_pandas=True))
 
     @classmethod
     def _from_sequence_of_strings(
@@ -143,7 +152,7 @@ class JSONArray(arrays.ArrowExtensionArray):
     def _concat_same_type(cls, to_concat) -> JSONArray:
         """Concatenate multiple JSONArray."""
         chunks = [array for ea in to_concat for array in ea._pa_array.iterchunks()]
-        arr = pa.chunked_array(chunks, type=pa.large_string())
+        arr = pa.chunked_array(chunks, type=pa.string())
         return cls(arr)
 
     @classmethod
@@ -154,7 +163,7 @@ class JSONArray(arrays.ArrowExtensionArray):
     @staticmethod
     def _serialize_json(value):
         """A static method that converts a JSON value into a string representation."""
-        if isinstance(value, str) or pd.isna(value):
+        if pd.isna(value):
             return value
         else:
             # `sort_keys=True` sorts dictionary keys before serialization, making
@@ -174,17 +183,10 @@ class JSONArray(arrays.ArrowExtensionArray):
         """An instance of JSONDtype"""
         return self._dtype
 
-    def __contains__(self, key) -> bool:
-        """Return for `item in self`."""
-        return super().__contains__(JSONArray._serialize_json(key))
-
-    def insert(self, loc: int, item) -> JSONArray:
-        """
-        Make new ExtensionArray inserting new item at location. Follows Python
-        list.append semantics for negative values.
-        """
-        val = JSONArray._serialize_json(item)
-        return super().insert(loc, val)
+    def _cmp_method(self, other, op):
+        pc_func = ARROW_CMP_FUNCS[op.__name__]
+        result = pc_func(self._pa_array, self._box_pa(other))
+        return arrays.ArrowExtensionArray(result)
 
     def __getitem__(self, item):
         """Select a subset of self."""
@@ -244,3 +246,48 @@ class JSONArray(arrays.ArrowExtensionArray):
                 yield self._dtype.na_value
             else:
                 yield val
+
+    def _reduce(
+        self, name: str, *, skipna: bool = True, keepdims: bool = False, **kwargs
+    ):
+        """Return a scalar result of performing the reduction operation."""
+        if name in ["min", "max"]:
+            raise TypeError("JSONArray does not support min/max reducntion.")
+        super()._reduce(name, skipna=skipna, keepdims=keepdims, **kwargs)
+
+    def __array__(
+        self, dtype = None, copy = None
+    ) -> np.ndarray:
+        """Correctly construct numpy arrays when passed to `np.asarray()`."""
+        return self.to_numpy(dtype=dtype)
+
+    def to_numpy(self, dtype = None, copy = False, na_value = pd.NA) -> np.ndarray:
+        dtype, na_value = self._to_numpy_dtype_inference(dtype, na_value, self._hasna)
+        pa_type = self._pa_array.type
+        if not self._hasna or pd.isna(na_value) or pa.types.is_null(pa_type):
+            data = self
+        else:
+            data = self.fillna(na_value)
+        result = np.array(list(data), dtype=dtype)
+        
+        if data._hasna:
+            result[data.isna()] = na_value
+        return result
+
+    def _to_numpy_dtype_inference(
+        self, dtype, na_value, hasna
+    ):
+        if dtype is not None:
+            dtype = np.dtype(dtype)
+
+        if dtype is None or not hasna:
+            na_value = self.dtype.na_value
+        elif dtype.kind == "f":  # type: ignore[union-attr]
+            na_value = np.nan
+        elif dtype.kind == "M":  # type: ignore[union-attr]
+            na_value = np.datetime64("nat")
+        elif dtype.kind == "m":  # type: ignore[union-attr]
+            na_value = np.timedelta64("nat")
+        else:
+            na_value = self.dtype.na_value
+        return dtype, na_value
