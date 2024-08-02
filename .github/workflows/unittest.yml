@@ -82,8 +82,8 @@ jobs:
     - name: Upload coverage results
       uses: actions/upload-artifact@v4
       with:
-        name: coverage-artifact-${{ matrix.python }}
-        path: .coverage-${{ matrix.python }}
+        name: coverage-artifact-compliance-${{ matrix.python }}
+        path: .coverage-compliance-${{ matrix.python }}
 
   cover:
     runs-on: ubuntu-latest
