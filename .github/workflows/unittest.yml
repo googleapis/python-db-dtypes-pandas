@@ -74,11 +74,11 @@ jobs:
       run: |
         python -m pip install --upgrade setuptools pip wheel
         python -m pip install nox
-    - name: Run unit tests
+    - name: Run compliance tests
       env:
         COVERAGE_FILE: .coverage-${{ matrix.python }}
       run: |
-        nox -s unit-${{ matrix.python }}
+        nox -s compliance-${{ matrix.python }}
     - name: Upload coverage results
       uses: actions/upload-artifact@v4
       with:
@@ -90,6 +90,7 @@ jobs:
     needs:
         - unit
         - unit-prerelease
+        - compliance
     steps:
     - name: Checkout
       uses: actions/checkout@v4
