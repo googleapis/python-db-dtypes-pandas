@@ -28,7 +28,6 @@ import pyarrow
 import pyarrow.compute
 
 from db_dtypes import core
-from db_dtypes.json import JSONArray, JSONDtype
 from db_dtypes.version import __version__
 
 date_dtype_name = "dbdate"
@@ -44,7 +43,14 @@ _NP_DTYPE = "datetime64[ns]"
 # nanosecond precision when boxing scalars.
 _NP_BOX_DTYPE = "datetime64[us]"
 
-pandas_release = packaging.version.parse(pandas.__version__).release
+
+# To use JSONArray and JSONDtype, you'll need Pandas 1.5.0 or later. With the removal
+# of Python 3.7 compatibility, the minimum Pandas version will be updated to 1.5.0.
+if packaging.version.Version(pandas.__version__) >= packaging.version.Version("1.5.0"):
+    from db_dtypes.json import JSONArray, JSONDtype
+else:
+    JSONArray = None
+    JSONDtype = None
 
 
 @pandas.api.extensions.register_extension_dtype

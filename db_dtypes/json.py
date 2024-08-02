@@ -48,8 +48,13 @@ class JSONDtype(pd.api.extensions.ExtensionDtype):
 
     @property
     def type(self) -> type[str]:
-        """Return the scalar type for the array, e.g. int."""
-        return dict
+        """
+        Return the scalar type for the array elements.
+        The standard JSON data types can be one of `dict`, `list`, `str`, `int`, `float`,
+        `bool` and `None`. However, this method returns a `str` type to indicate its
+        storage type, because the union of multiple types are not supported well in pandas.
+        """
+        return str
 
     @property
     def _is_numeric(self) -> bool:
