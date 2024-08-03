@@ -109,22 +109,6 @@ def na_cmp():
 
 
 @pytest.fixture
-def data_for_grouping():
-    return JSONArray._from_sequence(
-        [
-            json.dumps({"b": 1}),
-            json.dumps({"b": 1}),
-            None,
-            None,
-            json.dumps({"a": 0, "c": 2}),
-            json.dumps({"a": 0, "c": 2}),
-            json.dumps({"b": 1}),
-            json.dumps({"c": 2}),
-        ]
-    )
-
-
-@pytest.fixture
 def data_repeated(data):
     """
     Generate many datasets.
@@ -189,14 +173,6 @@ _all_numeric_reductions = [
 def all_numeric_reductions(request):
     """
     Fixture for numeric reduction names.
-    """
-    return request.param
-
-
-@pytest.fixture(params=tm.arithmetic_dunder_methods)
-def all_arithmetic_operators(request):
-    """
-    Fixture for dunder names for common arithmetic operations.
     """
     return request.param
 
