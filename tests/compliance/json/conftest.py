@@ -18,7 +18,6 @@ import random
 
 import numpy as np
 import pandas as pd
-import pandas._testing as tm
 import pytest
 
 from db_dtypes import JSONArray, JSONDtype
@@ -77,13 +76,6 @@ def data_for_twos(dtype):
 def data_missing():
     """Length 2 array with [NA, Valid]"""
     return JSONArray._from_sequence([None, {"a": 10}])
-
-
-@pytest.fixture
-def data_for_sorting():
-    return JSONArray._from_sequence(
-        [json.dumps({"b": 1}), json.dumps({"c": 4}), json.dumps({"a": 2, "c": 3})]
-    )
 
 
 @pytest.fixture

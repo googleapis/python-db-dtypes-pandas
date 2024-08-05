@@ -174,6 +174,22 @@ class TestJSONArrayMethods(base.BaseMethodsTests):
     def test_factorize_equivalence(self, data_for_grouping):
         super().test_factorize_equivalence(data_for_grouping)
 
+    @pytest.mark.skip(reason="BigQuery does not allow sort by a JSON-type column.")
+    def test_argsort(self, data_for_sorting):
+        super().test_argsort(data_for_sorting)
+
+    @pytest.mark.skip(reason="BigQuery does not allow sort by a JSON-type column.")
+    def test_argmin_argmax(self, data_for_sorting):
+        super().test_argmin_argmax(data_for_sorting)
+
+    @pytest.mark.skip(reason="BigQuery does not allow sort by a JSON-type column.")
+    def test_sort_values(self, data_for_sorting):
+        super().test_sort_values(data_for_sorting)
+
+    @pytest.mark.skip(reason="BigQuery does not allow sort by a JSON-type column.")
+    def test_sort_values_frame(self, data_for_sorting):
+        super().test_sort_values_frame(data_for_sorting)
+
 
 class TestJSONArrayMissing(base.BaseMissingTests):
     @pytest.mark.xfail(reason="Setting a dict as a scalar")
