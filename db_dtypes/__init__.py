@@ -343,6 +343,7 @@ class DateArray(core.BaseDatetimeArray):
 
         return super().__sub__(other)
 
+
 if not JSONArray or not JSONDtype:
     __all__ = [
         "__version__",
