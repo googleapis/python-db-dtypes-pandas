@@ -343,13 +343,21 @@ class DateArray(core.BaseDatetimeArray):
 
         return super().__sub__(other)
 
-
-__all__ = [
-    "__version__",
-    "DateArray",
-    "DateDtype",
-    "JSONDtype",
-    "JSONArray",
-    "TimeArray",
-    "TimeDtype",
-]
+if not JSONArray or not JSONDtype:
+    __all__ = [
+        "__version__",
+        "DateArray",
+        "DateDtype",
+        "TimeArray",
+        "TimeDtype",
+    ]
+else:
+    __all__ = [
+        "__version__",
+        "DateArray",
+        "DateDtype",
+        "JSONDtype",
+        "JSONArray",
+        "TimeArray",
+        "TimeDtype",
+    ]
