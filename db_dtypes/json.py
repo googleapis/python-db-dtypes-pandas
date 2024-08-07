@@ -15,7 +15,6 @@
 from __future__ import annotations
 
 import json
-import typing
 
 import numpy as np
 import pandas as pd
@@ -69,10 +68,10 @@ class JSONDtype(pd.api.extensions.ExtensionDtype):
         """Return the array type associated with this dtype."""
         return JSONArray
 
-    @staticmethod
-    def __from_arrow__(array: typing.Union[pa.Array, pa.ChunkedArray]) -> JSONArray:
-        """Convert to JSONArray from an Arrow array."""
-        return JSONArray(array)
+    # @staticmethod
+    # def __from_arrow__(array: typing.Union[pa.Array, pa.ChunkedArray]) -> JSONArray:
+    #     """Convert to JSONArray from an Arrow array."""
+    #     return JSONArray(array)
 
 
 class JSONArray(arrays.ArrowExtensionArray):
@@ -143,17 +142,8 @@ class JSONArray(arrays.ArrowExtensionArray):
     @classmethod
     def _from_sequence(cls, scalars, *, dtype=None, copy=False):
         """Construct a new ExtensionArray from a sequence of scalars."""
-        result = []
-        for scalar in scalars:
-            result.append(JSONArray._serialize_json(scalar))
+        result = [JSONArray._serialize_json(scalar) for scalar in scalars]
         return cls(pa.array(result, type=pa.string(), from_pandas=True))
-
-    @classmethod
-    def _from_sequence_of_strings(
-        cls, strings, *, dtype, copy: bool = False
-    ) -> JSONArray:
-        """Construct a new ExtensionArray from a sequence of strings."""
-        return cls._from_sequence(strings, dtype=dtype, copy=copy)
 
     @classmethod
     def _concat_same_type(cls, to_concat) -> JSONArray:

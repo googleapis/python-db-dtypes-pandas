@@ -13,22 +13,72 @@
 # limitations under the License.
 
 
-import datetime as dt
-from typing import Optional
+import json
 
-import pandas
-import pandas.api.extensions
+import pandas as pd
 import pandas.testing
-import pyarrow
 import pytest
-
-import packaging.version
 
 import db_dtypes
 
-is_supported_version = packaging.version.Version(pandas.__version__) >= packaging.version.Version("1.5.0")
+# Check for minimum Pandas version.
+pytest.importorskip("pandas", minversion="1.5.0")
 
-@pytest.mark.skipif(not is_supported_version, reason="requires Pandas 1.5.0 and above")
-def test_constructor_from_sequence():
-    json_obj = [0, "str", {"a": 0, "b": 1}]
-    data = db_dtypes.JSONArray._from_sequence(json_obj)
+
+# # Python data types mirroring all standard JSON types
+# https://json-schema.org/understanding-json-schema/reference/type
+JSON_DATA = {
+    "boolean": True,
+    "int": 100,
+    "float": 0.98,
+    "string": "hello world",
+    "array": [0.1, 0.2],
+    "dict": {
+        "null_field": None,
+        "order": {
+            "items": ["book", "pen", "computer"],
+            "total": 15.99,
+            "address": {"street": "123 Main St", "city": "Anytown"},
+        },
+    },
+    "null": None,
+}
+
+
+def test_get_items():
+    data = db_dtypes.JSONArray._from_sequence(JSON_DATA.values())
+    for id, key in enumerate(JSON_DATA.keys()):
+        if key == "null":
+            assert pd.isna(data[id])
+        else:
+            assert data[id] == JSON_DATA[key]
+
+
+def test_get_items_unbox_object():
+    data = db_dtypes.JSONArray._from_sequence([JSON_DATA["dict"]])
+    assert len(data[0]) == 2
+
+    assert data[0]["null_field"] is None
+    assert data[0]["order"]["address"]["city"] == "Anytown"
+    assert len(data[0]["order"]["items"]) == 3
+    assert data[0]["order"]["items"][0] == "book"
+
+    with pytest.raises(KeyError):
+        data[0]["unknown"]
+
+
+def test_to_numpy():
+    s = pd.Series(db_dtypes.JSONArray._from_sequence(JSON_DATA.values()))
+    data = s.to_numpy()
+    for id, key in enumerate(JSON_DATA.keys()):
+        if key == "null":
+            assert pd.isna(data[id])
+        else:
+            assert data[id] == json.dumps(JSON_DATA[key], sort_keys=True)
+
+
+def test_deterministic_json_serialization():
+    x = {"a": 0, "b": 1}
+    y = {"b": 1, "a": 0}
+    data = db_dtypes.JSONArray._from_sequence([x])
+    assert y in data
