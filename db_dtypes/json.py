@@ -47,6 +47,11 @@ class JSONDtype(pd.api.extensions.ExtensionDtype):
         return str
 
     @property
+    def pyarrow_dtype(self):
+        """Return the pyarrow data type used for storing data in the pyarrow array."""
+        return pa.string()
+
+    @property
     def _is_numeric(self) -> bool:
         return False
 
@@ -81,7 +86,7 @@ class JSONArray(arrays.ArrowExtensionArray):
         cls, value, pa_type: pa.DataType | None = None
     ) -> pa.Array | pa.ChunkedArray | pa.Scalar:
         """Box value into a pyarrow Array, ChunkedArray or Scalar."""
-        assert pa_type is None or pa_type == pa.string()
+        assert pa_type is None or pa_type == cls._dtype.pyarrow_dtype
 
         if isinstance(value, pa.Scalar) or not (
             common.is_list_like(value) and not common.is_dict_like(value)
@@ -93,10 +98,12 @@ class JSONArray(arrays.ArrowExtensionArray):
     def _box_pa_scalar(cls, value) -> pa.Scalar:
         """Box value into a pyarrow Scalar."""
         if pd.isna(value):
-            pa_scalar = pa.scalar(None, type=pa.string())
+            pa_scalar = pa.scalar(None, type=cls._dtype.pyarrow_dtype)
         else:
             value = JSONArray._serialize_json(value)
-            pa_scalar = pa.scalar(value, type=pa.string(), from_pandas=True)
+            pa_scalar = pa.scalar(
+                value, type=cls._dtype.pyarrow_dtype, from_pandas=True
+            )
 
         return pa_scalar
 
@@ -107,7 +114,7 @@ class JSONArray(arrays.ArrowExtensionArray):
             pa_array = value._pa_array
         else:
             value = [JSONArray._serialize_json(x) for x in value]
-            pa_array = pa.array(value, type=pa.string(), from_pandas=True)
+            pa_array = pa.array(value, type=cls._dtype.pyarrow_dtype, from_pandas=True)
         return pa_array
 
     @classmethod
@@ -116,17 +123,6 @@ class JSONArray(arrays.ArrowExtensionArray):
         pa_array = cls._box_pa(scalars)
         arr = cls(pa_array)
         return arr
-
-    @classmethod
-    def _concat_same_type(cls, to_concat) -> JSONArray:
-        """Concatenate multiple JSONArray."""
-        chunks = [
-            pa_array_chunks
-            for item in to_concat
-            for pa_array_chunks in item._pa_array.iterchunks()
-        ]
-        arr = pa.chunked_array(chunks, type=pa.string())
-        return cls(arr)
 
     @staticmethod
     def _serialize_json(value):
@@ -167,7 +163,7 @@ class JSONArray(arrays.ArrowExtensionArray):
 
         if isinstance(item, np.ndarray):
             if not len(item):
-                return type(self)(pa.chunked_array([], type=pa.string()))
+                return type(self)(pa.chunked_array([], type=self.dtype.pyarrow_dtype))
             elif item.dtype.kind in "iu":
                 return self.take(item)
             else:
