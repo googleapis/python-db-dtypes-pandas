@@ -171,7 +171,7 @@ class JSONArray(arrays.ArrowExtensionArray):
             else:
                 raise IndexError(
                     "Only integers, slices and integer or "
-                    "boolean arrays are valid indices."
+                    + "boolean arrays are valid indices."
                 )
         elif isinstance(item, tuple):
             item = indexers.unpack_tuple_and_ellipses(item)

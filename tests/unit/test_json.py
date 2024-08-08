@@ -25,7 +25,7 @@ import db_dtypes
 pytest.importorskip("pandas", minversion="1.5.0")
 
 
-# # Python data types mirroring all standard JSON types
+# Python data types mirroring all standard JSON types:
 # https://json-schema.org/understanding-json-schema/reference/type
 JSON_DATA = {
     "boolean": True,
