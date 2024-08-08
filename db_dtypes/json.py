@@ -153,7 +153,8 @@ class JSONArray(arrays.ArrowExtensionArray):
         elif op.__name__ == "ne":
             result = pyarrow.compute.not_equal(self._pa_array, self._box_pa(other))
         else:
-            raise NotImplementedError(f"{op.__name__} not implemented for JSONArray")
+            # Comparison is not a meaningful one. We don't want to support sorting by JSON columns.
+            raise TypeError(f"{op.__name__} not supported for JSONArray")
         return arrays.ArrowExtensionArray(result)
 
     def __getitem__(self, item):
