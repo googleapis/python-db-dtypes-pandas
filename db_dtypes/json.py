@@ -196,8 +196,7 @@ class JSONArray(arrays.ArrowExtensionArray):
     def __iter__(self):
         """Iterate over elements of the array."""
         for value in self._pa_array:
-            val = value.as_py()
-            # val = JSONArray._deserialize_json(value.as_py())
+            val = JSONArray._deserialize_json(value.as_py())
             if val is None:
                 yield self._dtype.na_value
             else:
