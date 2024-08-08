@@ -120,7 +120,11 @@ class JSONArray(arrays.ArrowExtensionArray):
     @classmethod
     def _concat_same_type(cls, to_concat) -> JSONArray:
         """Concatenate multiple JSONArray."""
-        chunks = [array for ea in to_concat for array in ea._pa_array.iterchunks()]
+        chunks = [
+            pa_array_chunks
+            for item in to_concat
+            for pa_array_chunks in item._pa_array.iterchunks()
+        ]
         arr = pa.chunked_array(chunks, type=pa.string())
         return cls(arr)
 
@@ -166,13 +170,10 @@ class JSONArray(arrays.ArrowExtensionArray):
                 return type(self)(pa.chunked_array([], type=pa.string()))
             elif item.dtype.kind in "iu":
                 return self.take(item)
-            elif item.dtype.kind == "b":
-                return type(self)(self._pa_array.filter(item))
             else:
-                raise IndexError(
-                    "Only integers, slices and integer or "
-                    + "boolean arrays are valid indices."
-                )
+                # `check_array_indexer` should verify that the assertion hold true.
+                assert item.dtype.kind == "b"
+                return type(self)(self._pa_array.filter(item))
         elif isinstance(item, tuple):
             item = indexers.unpack_tuple_and_ellipses(item)
 

@@ -72,13 +72,6 @@ def test_getitems_w_unboxed_dict():
         data[0]["unknown"]
 
 
-def test_getitems_w_invalid_numpy_array():
-    data = db_dtypes.JSONArray._from_sequence(JSON_DATA.values())
-    idx = np.array(["str"])
-    with pytest.raises(IndexError):
-        data[idx]
-
-
 def test_getitems_when_iter_with_null():
     data = db_dtypes.JSONArray._from_sequence([JSON_DATA["null"]])
     s = pd.Series(data)
