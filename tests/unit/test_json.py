@@ -15,8 +15,8 @@
 
 import json
 
+import numpy as np
 import pandas as pd
-import pandas.testing
 import pytest
 
 import db_dtypes
@@ -45,7 +45,12 @@ JSON_DATA = {
 }
 
 
-def test_get_items():
+def test_construct_w_unspported_types():
+    with pytest.raises(ValueError):
+        db_dtypes.JSONArray(100)
+
+
+def test_getitems_return_json_objects():
     data = db_dtypes.JSONArray._from_sequence(JSON_DATA.values())
     for id, key in enumerate(JSON_DATA.keys()):
         if key == "null":
@@ -54,7 +59,7 @@ def test_get_items():
             assert data[id] == JSON_DATA[key]
 
 
-def test_get_items_unbox_object():
+def test_getitems_w_unboxed_dict():
     data = db_dtypes.JSONArray._from_sequence([JSON_DATA["dict"]])
     assert len(data[0]) == 2
 
@@ -65,6 +70,20 @@ def test_get_items_unbox_object():
 
     with pytest.raises(KeyError):
         data[0]["unknown"]
+
+
+def test_getitems_w_invalid_numpy_array():
+    data = db_dtypes.JSONArray._from_sequence(JSON_DATA.values())
+    idx = np.array(["str"])
+    with pytest.raises(IndexError):
+        data[idx]
+
+
+def test_getitems_when_iter_with_null():
+    data = db_dtypes.JSONArray._from_sequence([JSON_DATA["null"]])
+    s = pd.Series(data)
+    result = s[:1].item()
+    assert pd.isna(result)
 
 
 def test_to_numpy():

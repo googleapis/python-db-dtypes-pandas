@@ -81,8 +81,7 @@ class JSONArray(arrays.ArrowExtensionArray):
         cls, value, pa_type: pa.DataType | None = None
     ) -> pa.Array | pa.ChunkedArray | pa.Scalar:
         """Box value into a pyarrow Array, ChunkedArray or Scalar."""
-        if pa_type is not None and pa_type != pa.string():
-            raise ValueError(f"Unsupported type '{pa_type}' for JSONArray")
+        assert pa_type is None or pa_type == pa.string()
 
         if isinstance(value, pa.Scalar) or not (
             common.is_list_like(value) and not common.is_dict_like(value)
@@ -93,8 +92,6 @@ class JSONArray(arrays.ArrowExtensionArray):
     @classmethod
     def _box_pa_scalar(cls, value) -> pa.Scalar:
         """Box value into a pyarrow Scalar."""
-        if isinstance(value, pa.Scalar):
-            pa_scalar = value
         if pd.isna(value):
             pa_scalar = pa.scalar(None, type=pa.string())
         else:
@@ -104,33 +101,21 @@ class JSONArray(arrays.ArrowExtensionArray):
         return pa_scalar
 
     @classmethod
-    def _box_pa_array(
-        cls, value, pa_type: pa.DataType | None = None, copy: bool = False
-    ) -> pa.Array | pa.ChunkedArray:
+    def _box_pa_array(cls, value, copy: bool = False) -> pa.Array | pa.ChunkedArray:
         """Box value into a pyarrow Array or ChunkedArray."""
         if isinstance(value, cls):
             pa_array = value._pa_array
-        elif isinstance(value, (pa.Array, pa.ChunkedArray)):
-            pa_array = value
         else:
-            try:
-                value = [JSONArray._serialize_json(x) for x in value]
-                pa_array = pa.array(value, type=pa_type, from_pandas=True)
-            except (pa.ArrowInvalid, pa.ArrowTypeError):
-                # https://github.com/pandas-dev/pandas/pull/50430:
-                # let pyarrow infer type, then cast
-                pa_array = pa.array(value, from_pandas=True)
-
-        if pa_type is not None and pa_array.type != pa_type:
-            pa_array = pa_array.cast(pa_type)
-
+            value = [JSONArray._serialize_json(x) for x in value]
+            pa_array = pa.array(value, type=pa.string(), from_pandas=True)
         return pa_array
 
     @classmethod
     def _from_sequence(cls, scalars, *, dtype=None, copy=False):
         """Construct a new ExtensionArray from a sequence of scalars."""
-        result = [JSONArray._serialize_json(scalar) for scalar in scalars]
-        return cls(pa.array(result, type=pa.string(), from_pandas=True))
+        pa_array = cls._box_pa(scalars)
+        arr = cls(pa_array)
+        return arr
 
     @classmethod
     def _concat_same_type(cls, to_concat) -> JSONArray:
@@ -138,11 +123,6 @@ class JSONArray(arrays.ArrowExtensionArray):
         chunks = [array for ea in to_concat for array in ea._pa_array.iterchunks()]
         arr = pa.chunked_array(chunks, type=pa.string())
         return cls(arr)
-
-    @classmethod
-    def _from_factorized(cls, values, original):
-        """Reconstruct an ExtensionArray after factorization."""
-        return cls._from_sequence(values, dtype=original.dtype)
 
     @staticmethod
     def _serialize_json(value):
@@ -202,19 +182,6 @@ class JSONArray(arrays.ArrowExtensionArray):
                 r"only integers, slices (`:`), ellipsis (`...`), numpy.newaxis "
                 r"(`None`) and integer or boolean arrays are valid indices"
             )
-        # We are not an array indexer, so maybe e.g. a slice or integer
-        # indexer. We dispatch to pyarrow.
-        if isinstance(item, slice):
-            # Arrow bug https://github.com/apache/arrow/issues/38768
-            if item.start == item.stop:
-                pass
-            elif (
-                item.stop is not None
-                and item.stop < -len(self)
-                and item.step is not None
-                and item.step < 0
-            ):
-                item = slice(item.start, None, item.step)
 
         value = self._pa_array[item]
         if isinstance(value, pa.ChunkedArray):
@@ -229,7 +196,8 @@ class JSONArray(arrays.ArrowExtensionArray):
     def __iter__(self):
         """Iterate over elements of the array."""
         for value in self._pa_array:
-            val = JSONArray._deserialize_json(value.as_py())
+            val = value.as_py()
+            # val = JSONArray._deserialize_json(value.as_py())
             if val is None:
                 yield self._dtype.na_value
             else:
