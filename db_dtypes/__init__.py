@@ -347,7 +347,7 @@ class DateArray(core.BaseDatetimeArray):
         return super().__sub__(other)
 
 
-sys_major, sys_minor, _ = _versions_helpers.extract_runtime_version()
+sys_major, sys_minor, sys_micro = _versions_helpers.extract_runtime_version()
 if sys_major == 3 and sys_minor in (7, 8):
     warnings.warn(
         "The python-bigquery library will stop supporting Python 3.7 "
