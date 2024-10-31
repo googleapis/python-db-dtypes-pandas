@@ -13,8 +13,6 @@
 # limitations under the License.
 
 
-import json
-
 import pandas as pd
 import pytest
 
