@@ -80,7 +80,7 @@ class JSONArray(arrays.ArrowExtensionArray):
         elif isinstance(values, pa.ChunkedArray):
             pa_data = values
         else:
-            raise ValueError(f"Unsupported type '{type(values)}' for JSONArray")
+            raise NotImplementedError(f"Unsupported type '{type(values)}' for JSONArray")
         
         # Ensures compatibility with pandas version 1.5.3
         if hasattr(self, '_data'):
