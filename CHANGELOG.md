@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.1](https://github.com/googleapis/python-db-dtypes-pandas/compare/v1.3.0...v1.3.1) (2024-10-31)
+
+
+### Bug Fixes
+
+* Support dbjson type on pandas version 1.5 ([#295](https://github.com/googleapis/python-db-dtypes-pandas/issues/295)) ([4b84e4a](https://github.com/googleapis/python-db-dtypes-pandas/commit/4b84e4a6fada5ecfa7f910dca61e6de714abdb9d))
+
 ## [1.3.0](https://github.com/googleapis/python-db-dtypes-pandas/compare/v1.2.0...v1.3.0) (2024-08-08)
 
 
