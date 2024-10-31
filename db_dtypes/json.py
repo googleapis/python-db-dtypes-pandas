@@ -80,12 +80,14 @@ class JSONArray(arrays.ArrowExtensionArray):
         elif isinstance(values, pa.ChunkedArray):
             pa_data = values
         else:
-            raise NotImplementedError(f"Unsupported type '{type(values)}' for JSONArray")
-        
+            raise NotImplementedError(
+                f"Unsupported type '{type(values)}' for JSONArray"
+            )
+
         # Ensures compatibility with pandas version 1.5.3
-        if hasattr(self, '_data'):
+        if hasattr(self, "_data"):
             self._data = pa_data
-        elif hasattr(self, '_pa_array'):
+        elif hasattr(self, "_pa_array"):
             self._pa_array = pa_data
         else:
             raise NotImplementedError(f"Unsupported pandas version: {pd.__version__}")
@@ -160,9 +162,9 @@ class JSONArray(arrays.ArrowExtensionArray):
     def pa_data(self):
         """An instance of stored pa data"""
         # Ensures compatibility with pandas version 1.5.3
-        if hasattr(self, '_data'):
+        if hasattr(self, "_data"):
             return self._data
-        elif hasattr(self, '_pa_array'):
+        elif hasattr(self, "_pa_array"):
             return self._pa_array
         else:
             raise NotImplementedError(f"Unsupported pandas version: {pd.__version__}")
