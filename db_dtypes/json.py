@@ -88,7 +88,7 @@ class JSONArray(arrays.ArrowExtensionArray):
         elif hasattr(self, '_pa_array'):
             self._pa_array = pa_data
         else:
-            raise ValueError(f"Unsupported pandas version: {pd.__version__}")
+            raise NotImplementedError(f"Unsupported pandas version: {pd.__version__}")
 
     @classmethod
     def _box_pa(
@@ -164,6 +164,8 @@ class JSONArray(arrays.ArrowExtensionArray):
             return self._data
         elif hasattr(self, '_pa_array'):
             return self._pa_array
+        else:
+            raise NotImplementedError(f"Unsupported pandas version: {pd.__version__}")
 
     def _cmp_method(self, other, op):
         if op.__name__ == "eq":
