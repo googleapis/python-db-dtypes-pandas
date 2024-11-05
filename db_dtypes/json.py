@@ -241,6 +241,6 @@ class JSONArray(arrays.ArrowExtensionArray):
             dtype = empty.dtype
         result = np.empty(len(data), dtype=dtype)
         mask = data.isna()
-        result[mask] = pd.NA
+        result[mask] = self._dtype.na_value
         result[~mask] = data[~mask].pa_data.to_numpy()
         return result
