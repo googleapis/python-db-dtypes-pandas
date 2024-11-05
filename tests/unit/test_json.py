@@ -13,7 +13,9 @@
 # limitations under the License.
 
 
+import numpy as np
 import pandas as pd
+import pandas._testing as tm
 import pytest
 
 import db_dtypes
@@ -81,3 +83,14 @@ def test_deterministic_json_serialization():
     y = {"b": 1, "a": 0}
     data = db_dtypes.JSONArray._from_sequence([y])
     assert data[0] == x
+
+
+def test_to_numpy():
+    data = db_dtypes.JSONArray._from_sequence(JSON_DATA.values())
+    expected = np.asarray(data)
+
+    result = data.to_numpy()
+    tm.assert_equal(result, expected)
+
+    result = pd.Series(data).to_numpy()
+    tm.assert_equal(result, expected)
