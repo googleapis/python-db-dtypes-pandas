@@ -15,7 +15,6 @@
 
 import numpy as np
 import pandas as pd
-import pandas._testing as tm
 import pytest
 
 import db_dtypes
@@ -90,7 +89,7 @@ def test_to_numpy():
     expected = np.asarray(data)
 
     result = data.to_numpy()
-    tm.assert_equal(result, expected)
+    pd._testing.assert_equal(result, expected)
 
     result = pd.Series(data).to_numpy()
-    tm.assert_equal(result, expected)
+    pd._testing.assert_equal(result, expected)
