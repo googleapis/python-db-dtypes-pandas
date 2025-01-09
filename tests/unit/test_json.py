@@ -16,6 +16,7 @@ import json
 
 import numpy as np
 import pandas as pd
+import pyarrow as pa
 import pytest
 
 import db_dtypes
@@ -114,3 +115,37 @@ def test_as_numpy_array():
         ]
     )
     pd._testing.assert_equal(result, expected)
+
+
+def test_arrow_json_storage_type():
+    arrow_json_type = db_dtypes.ArrowJSONType()
+    assert arrow_json_type.extension_name == "dbjson"
+    assert pa.types.is_string(arrow_json_type.storage_type)
+
+
+def test_arrow_json_constructors():
+    storage_array = pa.array(
+        ["0", "str", '{"b": 2}', '{"a": [1, 2, 3]}'], type=pa.string()
+    )
+    arr_1 = db_dtypes.ArrowJSONType().wrap_array(storage_array)
+    assert isinstance(arr_1, pa.ExtensionArray)
+
+    arr_2 = pa.ExtensionArray.from_storage(db_dtypes.ArrowJSONType(), storage_array)
+    assert isinstance(arr_2, pa.ExtensionArray)
+
+    assert arr_1 == arr_2
+
+
+def test_arrow_json_to_pandas():
+    storage_array = pa.array(
+        [None, "0", "str", '{"b": 2}', '{"a": [1, 2, 3]}'], type=pa.string()
+    )
+    arr = db_dtypes.ArrowJSONType().wrap_array(storage_array)
+
+    s = arr.to_pandas()
+    assert isinstance(s.dtypes, db_dtypes.JSONDtype)
+    assert pd.isna(s[0])
+    assert s[1] == 0
+    assert s[2] == "str"
+    assert s[3]["b"] == 2
+    assert s[4]["a"] == [1, 2, 3]

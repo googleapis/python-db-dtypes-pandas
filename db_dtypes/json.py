@@ -64,6 +64,10 @@ class JSONDtype(pd.api.extensions.ExtensionDtype):
         """Return the array type associated with this dtype."""
         return JSONArray
 
+    def __from_arrow__(self, array: pa.Array | pa.ChunkedArray) -> JSONArray:
+        """Convert the pyarrow array to the extension array."""
+        return JSONArray(array)
+
 
 class JSONArray(arrays.ArrowExtensionArray):
     """Extension array that handles BigQuery JSON data, leveraging a string-based
@@ -91,6 +95,10 @@ class JSONArray(arrays.ArrowExtensionArray):
             self._pa_array = pa_data
         else:
             raise NotImplementedError(f"Unsupported pandas version: {pd.__version__}")
+
+    def __arrow_array__(self):
+        """Convert to an arrow array. This is required for pyarrow extension."""
+        return self.pa_data
 
     @classmethod
     def _box_pa(
@@ -151,7 +159,12 @@ class JSONArray(arrays.ArrowExtensionArray):
     def _deserialize_json(value):
         """A static method that converts a JSON string back into its original value."""
         if not pd.isna(value):
-            return json.loads(value)
+            # Attempt to interpret the value as a JSON object.
+            # If it's not valid JSON, treat it as a regular string.
+            try:
+                return json.loads(value)
+            except json.JSONDecodeError:
+                return value
         else:
             return value
 
@@ -244,3 +257,39 @@ class JSONArray(arrays.ArrowExtensionArray):
         result[mask] = self._dtype.na_value
         result[~mask] = data[~mask].pa_data.to_numpy()
         return result
+
+
+class ArrowJSONType(pa.ExtensionType):
+    """Arrow extension type for the `dbjson` Pandas extension type."""
+
+    def __init__(self) -> None:
+        super().__init__(pa.string(), "dbjson")
+
+    def __arrow_ext_serialize__(self) -> bytes:
+        # No parameters are necessary
+        return b""
+
+    def __eq__(self, other):
+        if isinstance(other, pyarrow.BaseExtensionType):
+            return type(self) == type(other)
+        else:
+            return NotImplemented
+
+    def __ne__(self, other) -> bool:
+        return not self == other
+
+    @classmethod
+    def __arrow_ext_deserialize__(cls, storage_type, serialized) -> ArrowJSONType:
+        # return an instance of this subclass
+        return ArrowJSONType()
+
+    def __hash__(self) -> int:
+        return hash(str(self))
+
+    def to_pandas_dtype(self):
+        return JSONDtype()
+
+
+# Register the type to be included in RecordBatches, sent over IPC and received in
+# another Python process.
+pa.register_extension_type(ArrowJSONType())
