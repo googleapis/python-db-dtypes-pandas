@@ -269,15 +269,6 @@ class ArrowJSONType(pa.ExtensionType):
         # No parameters are necessary
         return b""
 
-    def __eq__(self, other):
-        if isinstance(other, pyarrow.BaseExtensionType):
-            return type(self) == type(other)
-        else:
-            return NotImplemented
-
-    def __ne__(self, other) -> bool:
-        return not self == other
-
     @classmethod
     def __arrow_ext_deserialize__(cls, storage_type, serialized) -> ArrowJSONType:
         # return an instance of this subclass
