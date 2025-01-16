@@ -221,6 +221,8 @@ class JSONArray(arrays.ArrowExtensionArray):
         value = self.pa_data[item]
         if isinstance(value, pa.ChunkedArray):
             return type(self)(value)
+        elif isinstance(value, pa.ExtensionScalar):
+            return value.as_py()
         else:
             scalar = JSONArray._deserialize_json(value.as_py())
             if scalar is None:
@@ -259,20 +261,23 @@ class JSONArray(arrays.ArrowExtensionArray):
         return result
 
 
-class ArrowJSONType(pa.ExtensionType):
+class JSONArrowScalar(pa.ExtensionScalar):
+    def as_py(self):
+        return JSONArray._deserialize_json(self.value.as_py() if self.value else None)
+
+
+class JSONArrowType(pa.ExtensionType):
     """Arrow extension type for the `dbjson` Pandas extension type."""
 
     def __init__(self) -> None:
         super().__init__(pa.string(), "dbjson")
 
     def __arrow_ext_serialize__(self) -> bytes:
-        # No parameters are necessary
         return b""
 
     @classmethod
-    def __arrow_ext_deserialize__(cls, storage_type, serialized) -> ArrowJSONType:
-        # return an instance of this subclass
-        return ArrowJSONType()
+    def __arrow_ext_deserialize__(cls, storage_type, serialized) -> JSONArrowType:
+        return JSONArrowType()
 
     def __hash__(self) -> int:
         return hash(str(self))
@@ -280,7 +285,10 @@ class ArrowJSONType(pa.ExtensionType):
     def to_pandas_dtype(self):
         return JSONDtype()
 
+    def __arrow_ext_scalar_class__(self):
+        return JSONArrowScalar
+
 
 # Register the type to be included in RecordBatches, sent over IPC and received in
 # another Python process.
-pa.register_extension_type(ArrowJSONType())
+pa.register_extension_type(JSONArrowType())
