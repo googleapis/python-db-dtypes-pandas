@@ -96,9 +96,9 @@ class JSONArray(arrays.ArrowExtensionArray):
         else:
             raise NotImplementedError(f"Unsupported pandas version: {pd.__version__}")
 
-    def __arrow_array__(self):
+    def __arrow_array__(self, type=None):
         """Convert to an arrow array. This is required for pyarrow extension."""
-        return self.pa_data
+        return pa.array(self.pa_data, type=JSONArrowType())
 
     @classmethod
     def _box_pa(
@@ -159,12 +159,7 @@ class JSONArray(arrays.ArrowExtensionArray):
     def _deserialize_json(value):
         """A static method that converts a JSON string back into its original value."""
         if not pd.isna(value):
-            # Attempt to interpret the value as a JSON object.
-            # If it's not valid JSON, treat it as a regular string.
-            try:
-                return json.loads(value)
-            except json.JSONDecodeError:
-                return value
+            return json.loads(value)
         else:
             return value
 
@@ -278,9 +273,6 @@ class JSONArrowType(pa.ExtensionType):
     @classmethod
     def __arrow_ext_deserialize__(cls, storage_type, serialized) -> JSONArrowType:
         return JSONArrowType()
-
-    def __hash__(self) -> int:
-        return hash(str(self))
 
     def to_pandas_dtype(self):
         return JSONDtype()

@@ -118,6 +118,11 @@ def test_as_numpy_array():
     pd._testing.assert_equal(result, expected)
 
 
+def test_json_arrow_array():
+    data = db_dtypes.JSONArray._from_sequence(JSON_DATA.values())
+    assert isinstance(data.__arrow_array__(), pa.ExtensionArray)
+
+
 def test_json_arrow_storage_type():
     arrow_json_type = db_dtypes.JSONArrowType()
     assert arrow_json_type.extension_name == "dbjson"
