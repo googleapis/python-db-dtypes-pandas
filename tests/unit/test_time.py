@@ -20,7 +20,6 @@ import pytest
 
 # To register the types.
 import db_dtypes  # noqa
-from db_dtypes import pandas_backports
 
 
 def test_box_func():
@@ -117,10 +116,6 @@ def test_time_parsing_errors(value, error):
         pandas.Series([value], dtype="dbtime")
 
 
-@pytest.mark.skipif(
-    not hasattr(pandas_backports, "numpy_validate_median"),
-    reason="median not available with this version of pandas",
-)
 @pytest.mark.parametrize(
     "values, expected",
     [

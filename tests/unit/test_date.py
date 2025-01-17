@@ -23,7 +23,6 @@ import pandas.testing
 import pytest
 
 import db_dtypes
-from db_dtypes import pandas_backports
 
 VALUE_PARSING_TEST_CASES = [
     # Min/Max values for pandas.Timestamp.
@@ -258,10 +257,6 @@ def test_date_min_2d():
     )
 
 
-@pytest.mark.skipif(
-    not hasattr(pandas_backports, "numpy_validate_median"),
-    reason="median not available with this version of pandas",
-)
 @pytest.mark.parametrize(
     "values, expected",
     [
@@ -284,10 +279,6 @@ def test_date_median(values, expected):
     assert series.median() == expected
 
 
-@pytest.mark.skipif(
-    not hasattr(pandas_backports, "numpy_validate_median"),
-    reason="median not available with this version of pandas",
-)
 def test_date_median_2d():
     input_array = db_dtypes.DateArray(
         numpy.array(
