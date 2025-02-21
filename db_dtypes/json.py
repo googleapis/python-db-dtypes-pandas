@@ -256,11 +256,6 @@ class JSONArray(arrays.ArrowExtensionArray):
         return result
 
 
-class JSONArrowScalar(pa.ExtensionScalar):
-    def as_py(self):
-        return JSONArray._deserialize_json(self.value.as_py() if self.value else None)
-
-
 class JSONArrowType(pa.ExtensionType):
     """Arrow extension type for the `dbjson` Pandas extension type."""
 
@@ -279,9 +274,6 @@ class JSONArrowType(pa.ExtensionType):
 
     def to_pandas_dtype(self):
         return JSONDtype()
-
-    def __arrow_ext_scalar_class__(self):
-        return JSONArrowScalar
 
 
 # Register the type to be included in RecordBatches, sent over IPC and received in
