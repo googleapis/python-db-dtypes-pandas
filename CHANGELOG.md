@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.3](https://github.com/googleapis/python-db-dtypes-pandas/compare/v1.4.2...v1.4.3) (2025-03-10)
+
+
+### Bug Fixes
+
+* Updates noxfile with pip freeze and pandas 1.2 ([#331](https://github.com/googleapis/python-db-dtypes-pandas/issues/331)) ([5eb2a85](https://github.com/googleapis/python-db-dtypes-pandas/commit/5eb2a85acc8292e00eea994e5e5ab54d7d037fda))
+
 ## [1.4.2](https://github.com/googleapis/python-db-dtypes-pandas/compare/v1.4.1...v1.4.2) (2025-03-04)
 
 
