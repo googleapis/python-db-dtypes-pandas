@@ -34,7 +34,7 @@ LINT_PATHS = ["docs", "db_dtypes", "tests", "noxfile.py", "setup.py"]
 
 DEFAULT_PYTHON_VERSION = "3.8"
 
-UNIT_TEST_PYTHON_VERSIONS: List[str] = ["3.7", "3.8", "3.9", "3.10", "3.11", "3.12"]
+UNIT_TEST_PYTHON_VERSIONS: List[str] = ["3.7", "3.8", "3.9", "3.10", "3.11", "3.12", "3.13"]
 UNIT_TEST_STANDARD_DEPENDENCIES = [
     "mock",
     "asyncmock",
@@ -270,13 +270,13 @@ def prerelease(session, tests_path):
     )
 
 
-@nox.session(python=UNIT_TEST_PYTHON_VERSIONS[-1])
+@nox.session(python=UNIT_TEST_PYTHON_VERSIONS)
 def compliance(session):
     """Run the compliance test suite."""
     default(session, os.path.join("tests", "compliance"))
 
 
-@nox.session(python=UNIT_TEST_PYTHON_VERSIONS[-1])
+@nox.session(python=UNIT_TEST_PYTHON_VERSIONS)
 def compliance_prerelease(session):
     """Run the compliance test suite with prerelease dependencies."""
     prerelease(session, os.path.join("tests", "compliance"))
@@ -288,7 +288,7 @@ def unit(session):
     default(session, os.path.join("tests", "unit"))
 
 
-@nox.session(python=UNIT_TEST_PYTHON_VERSIONS[-1])
+@nox.session(python=UNIT_TEST_PYTHON_VERSIONS)
 def unit_prerelease(session):
     """Run the unit test suite with prerelease dependencies."""
     prerelease(session, os.path.join("tests", "unit"))
