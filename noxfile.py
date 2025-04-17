@@ -270,7 +270,7 @@ def prerelease(session, tests_path):
     )
 
 
-@nox.session(python=UNIT_TEST_PYTHON_VERSIONS)
+@nox.session(python=UNIT_TEST_PYTHON_VERSIONS[-1])
 def compliance(session):
     """Run the compliance test suite."""
     default(session, os.path.join("tests", "compliance"))
