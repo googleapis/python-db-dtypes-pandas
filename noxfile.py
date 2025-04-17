@@ -288,7 +288,7 @@ def unit(session):
     default(session, os.path.join("tests", "unit"))
 
 
-@nox.session(python=UNIT_TEST_PYTHON_VERSIONS)
+@nox.session(python=UNIT_TEST_PYTHON_VERSIONS[-1])
 def unit_prerelease(session):
     """Run the unit test suite with prerelease dependencies."""
     prerelease(session, os.path.join("tests", "unit"))
