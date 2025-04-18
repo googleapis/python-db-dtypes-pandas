@@ -21,7 +21,6 @@ from typing import Optional, Union
 import warnings
 
 import numpy
-import packaging.version
 import pandas
 import pandas.api.extensions
 from pandas.errors import OutOfBoundsDatetime
@@ -29,6 +28,7 @@ import pyarrow
 import pyarrow.compute
 
 from db_dtypes import core
+from db_dtypes.json import JSONArray, JSONArrowType, JSONDtype
 from db_dtypes.version import __version__
 
 from . import _versions_helpers
@@ -46,7 +46,6 @@ _NP_DTYPE = "datetime64[ns]"
 # nanosecond precision when boxing scalars.
 _NP_BOX_DTYPE = "datetime64[us]"
 
-from db_dtypes.json import JSONArray, JSONArrowType, JSONDtype
 
 @pandas.api.extensions.register_extension_dtype
 class TimeDtype(core.BaseDatetimeDtype):
@@ -342,14 +341,13 @@ class DateArray(core.BaseDatetimeArray):
 sys_major, sys_minor, sys_micro = _versions_helpers.extract_runtime_version()
 if sys_major == 3 and sys_minor in (7, 8):
     warnings.warn(
-        "The python-bigquery library will stop supporting Python 3.7 "
-        "and Python 3.8 in a future major release expected in Q4 2024. "
+        "The python-bigquery library as well as the python-db-dtypes-pandas library no "
+        "longer supports Python 3.7 and Python 3.8. "
         f"Your Python version is {sys_major}.{sys_minor}.{sys_micro}. We "
         "recommend that you update soon to ensure ongoing support. For "
         "more details, see: [Google Cloud Client Libraries Supported Python Versions policy](https://cloud.google.com/python/docs/supported-python-versions)",
-        PendingDeprecationWarning,
+        FutureWarning,
     )
-
 
 if not JSONArray or not JSONDtype:
     __all__ = [

@@ -186,7 +186,6 @@ class BaseDatetimeArray(
         keepdims: bool = False,
         skipna: bool = True,
     ):
-
         pandas_backports.numpy_validate_median(
             (),
             {"out": out, "overwrite_input": overwrite_input, "keepdims": keepdims},

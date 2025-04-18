@@ -14,7 +14,6 @@
 
 import datetime
 
-import packaging.version
 import pytest
 
 pd = pytest.importorskip("pandas")
@@ -536,7 +535,7 @@ def test_min_max_median(dtype):
         a = cls(data)
         assert a.min() == sample_values[0]
         assert a.max() == sample_values[-1]
-        
+
         assert (
             a.median() == datetime.time(1, 2, 4)
             if dtype == "dbtime"
