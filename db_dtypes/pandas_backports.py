@@ -40,9 +40,8 @@ numpy_validate_any = pandas.compat.numpy.function.validate_any
 numpy_validate_max = pandas.compat.numpy.function.validate_max
 numpy_validate_min = pandas.compat.numpy.function.validate_min
 
-if pandas_release >= (1, 3):
-    nanmedian = pandas.core.nanops.nanmedian
-    numpy_validate_median = pandas.compat.numpy.function.validate_median
+nanmedian = pandas.core.nanops.nanmedian
+numpy_validate_median = pandas.compat.numpy.function.validate_median
 
 
 def import_default(module_name, force=False, default=None):
@@ -82,7 +81,7 @@ class OpsMixin:
 
 # TODO: use public API once pandas 1.5 / 2.x is released.
 # See: https://github.com/pandas-dev/pandas/pull/45544
-@import_default("pandas.core.arrays._mixins", pandas_release < (1, 3))
+@import_default("pandas.core.arrays._mixins")
 class NDArrayBackedExtensionArray(pandas.core.arrays.base.ExtensionArray):
     def __init__(self, values, dtype):
         assert isinstance(values, numpy.ndarray)

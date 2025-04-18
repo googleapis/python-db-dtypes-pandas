@@ -24,7 +24,7 @@ from pandas.tests.extension import base
 import pytest
 
 # NDArrayBacked2DTests suite added in https://github.com/pandas-dev/pandas/pull/44974
-pytest.importorskip("pandas", minversion="1.5.0dev")
+pytest.importorskip("pandas")
 
 
 class Test2DCompat(base.NDArrayBacked2DTests):
