@@ -31,8 +31,8 @@ release_status = "Development Status :: 5 - Production/Stable"
 
 dependencies = [
     "packaging >= 17.0",
-    "pandas >= 1.2.0",
-    "pyarrow>=3.0.0",
+    "pandas >= 1.5.0",
+    "pyarrow >= 3.0.0",
     "numpy >= 1.16.6",
 ]
 
