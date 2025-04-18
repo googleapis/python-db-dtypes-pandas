@@ -186,9 +186,6 @@ class BaseDatetimeArray(
         keepdims: bool = False,
         skipna: bool = True,
     ):
-        if not hasattr(pandas_backports, "numpy_validate_median"):
-            raise NotImplementedError("Need pandas 1.3 or later to calculate median.")
-
         pandas_backports.numpy_validate_median(
             (),
             {"out": out, "overwrite_input": overwrite_input, "keepdims": keepdims},
