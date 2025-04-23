@@ -275,7 +275,11 @@ class JSONArrowType(pa.ExtensionType):
     def to_pandas_dtype(self):
         return JSONDtype()
 
-
 # Register the type to be included in RecordBatches, sent over IPC and received in
-# another Python process.
-pa.register_extension_type(JSONArrowType())
+# another Python process. Also handle potential pre-registration
+try:
+    pa.register_extension_type(JSONArrowType())
+except pa.ArrowKeyError:
+    # Type 'dbjson' might already be registered if the module is reloaded,
+    # which is okay.
+    pass
