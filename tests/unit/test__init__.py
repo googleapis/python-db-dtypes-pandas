@@ -5,147 +5,133 @@ import warnings
 from unittest import mock
 import pyarrow as pa
 
-# The module where the version check code resides
+# Module paths used for mocking
 MODULE_PATH = "db_dtypes"
 HELPER_MODULE_PATH = f"{MODULE_PATH}._versions_helpers"
-
-@pytest.fixture
-def cleanup_imports():
-    """Ensures the target module and its helper are removed from sys.modules
-    before each test, allowing for clean imports with patching.
-    """
-
-    # Store original modules that might exist
-    original_modules = {}
-    modules_to_clear = [MODULE_PATH, HELPER_MODULE_PATH]
-    for mod_name in modules_to_clear:
-        if mod_name in sys.modules:
-            original_modules[mod_name] = sys.modules[mod_name]
-            del sys.modules[mod_name]
-
-    yield # Run the test
-
-    # Clean up again and restore originals if they existed
-    for mod_name in modules_to_clear:
-        if mod_name in sys.modules:
-            del sys.modules[mod_name] # Remove if test imported it
-    # Restore original modules
-    for mod_name, original_mod in original_modules.items():
-        if original_mod:
-            sys.modules[mod_name] = original_mod
+MOCK_EXTRACT_VERSION = f"{HELPER_MODULE_PATH}.extract_runtime_version"
+MOCK_WARN = "warnings.warn" # Target the standard warnings module
 
 @pytest.mark.parametrize(
-    "mock_version_tuple, version_str, expect_warning",
+    "mock_version_tuple, version_str",
     [
-        # Cases expected to warn
-        ((3, 7, 10), "3.7.10", True),
-        ((3, 7, 0), "3.7.0", True),
-        ((3, 8, 5), "3.8.5", True),
-        ((3, 8, 12), "3.8.12", True),
-        # Cases NOT expected to warn
-        ((3, 9, 1), "3.9.1", False),
-        ((3, 10, 0), "3.10.0", False),
-        ((3, 11, 2), "3.11.2", False),
-        ((3, 12, 0), "3.12.0", False),
+        ((3, 7, 10), "3.7.10"),
+        ((3, 7, 0), "3.7.0"),
+        ((3, 8, 5), "3.8.5"),
+        ((3, 8, 12), "3.8.12"),
     ]
 )
-def test_python_version_warning_on_import(mock_version_tuple, version_str, expect_warning, cleanup_imports):
-    """Test that a FutureWarning is raised ONLY for Python 3.7 or 3.8 during import.
+def test_check_python_version_warns_on_unsupported(mock_version_tuple, version_str):
     """
-    
-    # Create a mock function that returns the desired version tuple
-    mock_extract_func = mock.Mock(return_value=mock_version_tuple)
-
-    # Create a mock module object for _versions_helpers
-    mock_helpers_module = types.ModuleType(HELPER_MODULE_PATH)
-    mock_helpers_module.extract_runtime_version = mock_extract_func
-
-    # Use mock.patch.dict to temporarily replace the module in sys.modules
-    # This ensures that when db_dtypes.__init__ does `from . import _versions_helpers`,
-    # it gets our mock module.
-    with mock.patch.dict(sys.modules, {HELPER_MODULE_PATH: mock_helpers_module}):
-        if expect_warning:
-            with pytest.warns(FutureWarning) as record:
-                # The import will now use the mocked _versions_helpers module
-                import db_dtypes
-
-            assert len(record) == 1
-            warning_message = str(record[0].message)
-            assert "longer supports Python 3.7 and Python 3.8" in warning_message
-        else:
-            with warnings.catch_warnings(record=True) as record:
-                warnings.simplefilter("always")
-                # The import will now use the mocked _versions_helpers module
-                import db_dtypes
-
-            found_warning = False
-            for w in record:
-                if (issubclass(w.category, FutureWarning) and
-                        "longer supports Python 3.7 and Python 3.8" in str(w.message)):
-                    found_warning = True
-                    break
-            assert not found_warning, (
-                f"Unexpected FutureWarning raised for Python version {version_str}"
-            )
-
-# --- Test Case 1: JSON types available ---
-
-@pytest.fixture
-def cleanup_imports_for_all(request):
+    Test that _check_python_version issues a FutureWarning for Python 3.7/3.8.
     """
-    Ensures the target module and its dependencies potentially affecting
-    __all__ are removed from sys.modules before and after each test,
-    allowing for clean imports with patching. Also handles PyArrow extension type registration.
-    """
+    # Import the function under test directly
+    from db_dtypes import _check_python_version
 
-    # Modules that might be checked or imported in __init__
-    modules_to_clear = [
-        MODULE_PATH,
-        f"{MODULE_PATH}.core",
-        f"{MODULE_PATH}.json",
-        f"{MODULE_PATH}.version",
-        f"{MODULE_PATH}._versions_helpers",
+    # Mock the helper function it calls and the warnings.warn function
+    with mock.patch(MOCK_EXTRACT_VERSION, return_value=mock_version_tuple), \
+         mock.patch(MOCK_WARN) as mock_warn_call:
+
+        _check_python_version() # Call the function
+
+        # Assert that warnings.warn was called exactly once
+        mock_warn_call.assert_called_once()
+
+        # Check the arguments passed to warnings.warn
+        args, kwargs = mock_warn_call.call_args
+        assert len(args) >= 1 # Should have at least the message
+        warning_message = args[0]
+        warning_category = args[1] if len(args) > 1 else kwargs.get('category')
+
+        # Verify message content and category
+        assert "longer supports Python 3.7 and Python 3.8" in warning_message
+        assert f"Your Python version is {version_str}" in warning_message
+        assert "https://cloud.google.com/python/docs/supported-python-versions" in warning_message
+        assert warning_category == FutureWarning
+        # Optionally check stacklevel if important
+        assert kwargs.get('stacklevel') == 2
+
+
+@pytest.mark.parametrize(
+    "mock_version_tuple",
+    [
+        (3, 9, 1),
+        (3, 10, 0),
+        (3, 11, 2),
+        (3, 12, 0),
+        (4, 0, 0), # Future version
+        (3, 6, 0), # Older unsupported, but not 3.7/3.8
     ]
-    original_modules = {}
-
-    # Store original modules and remove them
-    for mod_name in modules_to_clear:
-        original_modules[mod_name] = sys.modules.get(mod_name)
-        if mod_name in sys.modules:
-            del sys.modules[mod_name]
-
-    yield # Run the test
-
-    # Restore original modules after test
-    for mod_name, original_mod in original_modules.items():
-        if original_mod:
-            sys.modules[mod_name] = original_mod
-        elif mod_name in sys.modules:
-             # If it wasn't there before but is now, remove it
-             del sys.modules[mod_name]
-
-def test_all_includes_json_when_available(cleanup_imports_for_all):
+)
+def test_check_python_version_does_not_warn_on_supported(mock_version_tuple):
     """
-    Test that __all__ includes JSON types when JSONArray and JSONDtype are available.
+    Test that _check_python_version does NOT issue a warning for other versions.
     """
+    # Import the function under test directly
+    from db_dtypes import _check_python_version
 
-    # No patching needed for the 'else' block, assume normal import works
-    # and JSONArray/JSONDtype are truthy.
-    import db_dtypes
+    # Mock the helper function it calls and the warnings.warn function
+    with mock.patch(MOCK_EXTRACT_VERSION, return_value=mock_version_tuple), \
+         mock.patch(MOCK_WARN) as mock_warn_call:
+
+        _check_python_version() # Call the function
+
+        # Assert that warnings.warn was NOT called
+        mock_warn_call.assert_not_called()
+
+
+def test_determine_all_includes_json_when_available():
+    """
+    Test that _determine_all includes JSON types when both are truthy.
+    """
+    # Import the function directly for testing
+    from db_dtypes import _determine_all
+
+    # Simulate available types (can be any truthy object)
+    mock_json_array = object()
+    mock_json_dtype = object()
+
+    result = _determine_all(mock_json_array, mock_json_dtype)
 
     expected_all = [
         "__version__",
         "DateArray",
         "DateDtype",
+        "TimeArray",
+        "TimeDtype",
         "JSONDtype",
         "JSONArray",
         "JSONArrowType",
+    ]
+    assert set(result) == set(expected_all)
+    assert "JSONDtype" in result
+    assert "JSONArray" in result
+    assert "JSONArrowType" in result
+
+@pytest.mark.parametrize(
+    "mock_array, mock_dtype",
+    [
+        (None, object()), # JSONArray is None
+        (object(), None), # JSONDtype is None
+        (None, None),     # Both are None
+    ]
+)
+def test_determine_all_excludes_json_when_unavailable(mock_array, mock_dtype):
+    """
+    Test that _determine_all excludes JSON types if either is falsy.
+    """
+    # Import the function directly for testing
+    from db_dtypes import _determine_all
+
+    result = _determine_all(mock_array, mock_dtype)
+
+    expected_all = [
+        "__version__",
+        "DateArray",
+        "DateDtype",
         "TimeArray",
         "TimeDtype",
     ]
-    # Use set comparison for order independence, as __all__ order isn't critical
-    assert set(db_dtypes.__all__) == set(expected_all)
-    # Explicitly check presence of JSON types
-    assert "JSONDtype" in db_dtypes.__all__
-    assert "JSONArray" in db_dtypes.__all__
-    assert "JSONArrowType" in db_dtypes.__all__
+    assert set(result) == set(expected_all)
+    assert "JSONDtype" not in result
+    assert "JSONArray" not in result
+    assert "JSONArrowType" not in result
