@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import importlib
 import json
 import sys
 
@@ -227,19 +226,22 @@ def test_json_arrow_record_batch():
     )
     assert s[6] == "null"
 
+
 @pytest.fixture
 def cleanup_json_module_for_reload():
     """
     Fixture to ensure db_dtypes.json is registered and then removed
     from sys.modules to allow testing the registration except block via reload.
     """
+
     json_module_name = "db_dtypes.json"
     original_module = sys.modules.get(json_module_name)
 
-    # 1. Ensure the type is registered initially (usually by the first import)
+    # Ensure the type is registered initially (usually by the first import)
     try:
         # Make sure the module is loaded so the type exists
         import db_dtypes.json
+
         # Explicitly register just in case it wasn't, or was cleaned up elsewhere.
         # This might raise ArrowKeyError itself if already registered, which is fine here.
         pa.register_extension_type(db_dtypes.json.JSONArrowType())
@@ -248,13 +250,13 @@ def cleanup_json_module_for_reload():
     except ImportError:
         pytest.skip("Could not import db_dtypes.json to set up test.")
 
-    # 2. Remove the module from sys.modules so importlib.reload re-executes it
+    # Remove the module from sys.modules so importlib.reload re-executes it
     if json_module_name in sys.modules:
         del sys.modules[json_module_name]
 
     yield  # Run the test that uses this fixture
 
-    # 3. Cleanup: Put the original module back if it existed
+    # Cleanup: Put the original module back if it existed
     # This helps isolate from other tests that might import db_dtypes.json
     if original_module:
         sys.modules[json_module_name] = original_module
@@ -275,11 +277,9 @@ def test_json_arrow_type_reregistration_is_handled(cleanup_json_module_for_reloa
         # Re-importing the module after the fixture removed it from sys.modules
         # forces Python to execute the module's top-level code again.
         # This includes the pa.register_extension_type call.
-        import db_dtypes.json
-
-        # If the import completes without raising pa.ArrowKeyError,
-        # it means the 'except ArrowKeyError: pass' block worked as expected.
-        assert True, "Module re-import completed without error, except block likely worked."
+        assert (
+            True
+        ), "Module re-import completed without error, except block likely worked."
 
     except pa.ArrowKeyError:
         # If this exception escapes, the except block in db_dtypes/json.py failed.
@@ -288,5 +288,4 @@ def test_json_arrow_type_reregistration_is_handled(cleanup_json_module_for_reloa
             "indicating the except block failed."
         )
     except Exception as e:
-        # Catch any other unexpected error during the reload for better debugging.
         pytest.fail(f"An unexpected exception occurred during module reload: {e}")

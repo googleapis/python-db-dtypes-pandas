@@ -51,4 +51,3 @@ def test_import_default_force_true(mock_import):
 
     # Assert that the returned value is the default class itself
     assert result is default_class
-

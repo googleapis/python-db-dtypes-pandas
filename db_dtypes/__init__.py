@@ -28,8 +28,7 @@ import pyarrow
 import pyarrow.compute
 
 from db_dtypes import core
-from db_dtypes.json import JSONArray, JSONArrowType, JSONDtype
-from db_dtypes.version import __version__
+from db_dtypes.json import JSONArray, JSONDtype
 
 from . import _versions_helpers
 
@@ -337,9 +336,6 @@ class DateArray(core.BaseDatetimeArray):
 
         return super().__sub__(other)
 
-# Inside db_dtypes/__init__.py (TEMPORARY DEBUG)
-print(f"DEBUG: Inside __init__, JSONArray type: {type(JSONArray)}, value: {repr(JSONArray)}")
-print(f"DEBUG: Inside __init__, JSONDtype type: {type(JSONDtype)}, value: {repr(JSONDtype)}")
 
 def _determine_all(json_array_type, json_dtype_type):
     """Determines the list for __all__ based on JSON type availability."""
@@ -352,11 +348,10 @@ def _determine_all(json_array_type, json_dtype_type):
     ]
     # Check if both JSON types are available (truthy)
     if json_array_type and json_dtype_type:
-        # print("DEBUG: Condition FALSE, including JSON in __all__") # Keep if needed
         return base_all + ["JSONDtype", "JSONArray", "JSONArrowType"]
     else:
-        # print("DEBUG: Condition TRUE, excluding JSON from __all__") # Keep if needed
         return base_all
+
 
 def _check_python_version():
     """Checks the runtime Python version and issues a warning if needed."""
@@ -369,23 +364,9 @@ def _check_python_version():
             "recommend that you update soon to ensure ongoing support. For "
             "more details, see: [Google Cloud Client Libraries Supported Python Versions policy](https://cloud.google.com/python/docs/supported-python-versions)",
             FutureWarning,
-            stacklevel=2, # Point warning to the caller of __init__
+            stacklevel=2,  # Point warning to the caller of __init__
         )
 
-
-# sys_major, sys_minor, sys_micro = _versions_helpers.extract_runtime_version()
-# if sys_major == 3 and sys_minor in (7, 8):
-#     warnings.warn(
-#         "The python-bigquery library as well as the python-db-dtypes-pandas library no "
-#         "longer supports Python 3.7 and Python 3.8. "
-#         f"Your Python version is {sys_major}.{sys_minor}.{sys_micro}. We "
-#         "recommend that you update soon to ensure ongoing support. For "
-#         "more details, see: [Google Cloud Client Libraries Supported Python Versions policy](https://cloud.google.com/python/docs/supported-python-versions)",
-#         FutureWarning,
-#     )
-
-# Perform the version check
 _check_python_version()
 
-# Assign __all__ by calling the function
 __all__ = _determine_all(JSONArray, JSONDtype)
