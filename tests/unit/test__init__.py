@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import sys
 from unittest import mock
 
 import pytest
@@ -21,7 +22,6 @@ MODULE_PATH = "db_dtypes"
 HELPER_MODULE_PATH = f"{MODULE_PATH}._versions_helpers"
 MOCK_EXTRACT_VERSION = f"{HELPER_MODULE_PATH}.extract_runtime_version"
 MOCK_WARN = "warnings.warn"  # Target the standard warnings module
-
 
 @pytest.mark.parametrize(
     "mock_version_tuple, version_str",
