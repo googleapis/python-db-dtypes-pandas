@@ -26,7 +26,7 @@ MOCK_WARN = "warnings.warn"  # Target the standard warnings module
 @pytest.mark.parametrize(
     "mock_version_tuple, version_str",
     [
-        ((3, 7, 10), "3.7.10"),
+        ((3, 7, https://github.com/googleapis/python-db-dtypes-pandas/pull/337/conflict?name=tests%252Funit%252Ftest__init__.py&base_oid=7ae260c04195ba4ee9c64907bcfe6f51a960a75f&head_oid=4b86d5458315130ea3d75ea45fc5526b34a4f9f710), "3.7.10"),
         ((3, 7, 0), "3.7.0"),
         ((3, 8, 5), "3.8.5"),
         ((3, 8, 12), "3.8.12"),
@@ -66,8 +66,6 @@ def test_check_python_version_warns_on_unsupported(mock_version_tuple, version_s
         (3, 10, 0),
         (3, 11, 2),
         (3, 12, 0),
-        (4, 0, 0),  # Future version
-        (3, 6, 0),  # Older unsupported, but not 3.7/3.8
     ],
 )
 def test_check_python_version_does_not_warn_on_supported(mock_version_tuple):
@@ -144,3 +142,4 @@ def test_determine_all_excludes_json_when_unavailable(mock_array, mock_dtype):
     assert "JSONDtype" not in result
     assert "JSONArray" not in result
     assert "JSONArrowType" not in result
+

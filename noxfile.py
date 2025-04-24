@@ -185,7 +185,7 @@ def default(session, tests_path):
     session.run(
         "py.test",
         "--quiet",
-        "-W default::PendingDeprecationWarning",
+        "-W default::FutureWarning",
         f"--junitxml={os.path.split(tests_path)[-1]}_{session.python}_sponge_log.xml",
         "--cov=db_dtypes",
         "--cov=tests/unit",
@@ -263,7 +263,7 @@ def prerelease(session, tests_path):
     session.run(
         "py.test",
         "--quiet",
-        "-W default::PendingDeprecationWarning",
+        "-W default::FutureWarning",
         f"--junitxml={os.path.split(tests_path)[-1]}_prerelease_{session.python}_sponge_log.xml",
         "--cov=db_dtypes",
         "--cov=tests/unit",
