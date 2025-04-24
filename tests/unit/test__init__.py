@@ -23,6 +23,7 @@ HELPER_MODULE_PATH = f"{MODULE_PATH}._versions_helpers"
 MOCK_EXTRACT_VERSION = f"{HELPER_MODULE_PATH}.extract_runtime_version"
 MOCK_WARN = "warnings.warn"  # Target the standard warnings module
 
+
 @pytest.mark.parametrize(
     "mock_version_tuple, version_str",
     [
