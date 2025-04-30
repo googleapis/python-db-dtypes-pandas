@@ -249,16 +249,16 @@ def cleanup_json_module_for_reload():
         pass  # Already registered is the state we want before the test runs
 
     # Remove the module from sys.modules so importlib.reload re-executes it
-    if json_module_name in sys.modules: # COVERAGE FAIL: 252->255
+    if json_module_name in sys.modules:  # COVERAGE FAIL: 252->255
         del sys.modules[json_module_name]
 
     yield  # Run the test that uses this fixture
 
     # Cleanup: Put the original module back if it existed
     # This helps isolate from other tests that might import db_dtypes.json
-    if original_module: # COVERAGE FAIL: 259-261
+    if original_module:  # COVERAGE FAIL: 259-261
         sys.modules[json_module_name] = original_module
-    elif json_module_name in sys.modules: # COVERAGE FAIL: 261->exit
+    elif json_module_name in sys.modules:  # COVERAGE FAIL: 261->exit
         # If the test re-imported it but it wasn't there originally, remove it
         del sys.modules[json_module_name]
 
@@ -275,7 +275,7 @@ def test_json_arrow_type_reregistration_is_handled(cleanup_json_module_for_reloa
     # Re-importing the module after the fixture removed it from sys.modules
     # forces Python to execute the module's top-level code again.
     # This includes the pa.register_extension_type call.
-    
+
     assert "db_dtypes.json" not in sys.modules
     try:
         import db_dtypes.json  # noqa: F401
@@ -284,7 +284,7 @@ def test_json_arrow_type_reregistration_is_handled(cleanup_json_module_for_reloa
             True
         ), "Module re-import completed without error, except block likely worked."
 
-    except pa.ArrowKeyError: # COVERAGE FAIL: 287-294
+    except pa.ArrowKeyError:  # COVERAGE FAIL: 287-294
         # If this exception escapes, the except block in db_dtypes/json.py failed.
         pytest.fail(
             "pa.ArrowKeyError was raised during module reload, "
