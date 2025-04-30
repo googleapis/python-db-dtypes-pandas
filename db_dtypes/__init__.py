@@ -28,7 +28,7 @@ import pyarrow
 import pyarrow.compute
 
 from db_dtypes import core
-from db_dtypes.json import JSONArray, JSONDtype
+from db_dtypes.json import JSONArray, JSONDtype, JSONArrowType
 
 from . import _versions_helpers
 
