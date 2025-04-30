@@ -142,4 +142,3 @@ def test_determine_all_excludes_json_when_unavailable(mock_array, mock_dtype):
     assert "JSONDtype" not in result
     assert "JSONArray" not in result
     assert "JSONArrowType" not in result
-

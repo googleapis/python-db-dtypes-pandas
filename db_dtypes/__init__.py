@@ -367,6 +367,7 @@ def _check_python_version():
             stacklevel=2,  # Point warning to the caller of __init__
         )
 
+
 _check_python_version()
 
 __all__ = _determine_all(JSONArray, JSONDtype)

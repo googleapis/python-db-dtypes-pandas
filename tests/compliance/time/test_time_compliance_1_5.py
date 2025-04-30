@@ -21,7 +21,7 @@ https://github.com/pandas-dev/pandas/blob/main/pandas/tests/extension/test_perio
 """
 
 from pandas.tests.extension import base
-import pytest
+
 
 # NDArrayBacked2DTests suite added in https://github.com/pandas-dev/pandas/pull/44974
 class Test2DCompat(base.NDArrayBacked2DTests):
