@@ -33,7 +33,7 @@ dependencies = [
     "numpy >= 1.24.0",
     "packaging >= 24.2.0",
     "pandas >= 1.5.3",
-    "pyarrow >= 4.0.0",
+    "pyarrow >= 13.0.0",
 ]
 
 package_root = os.path.abspath(os.path.dirname(__file__))
