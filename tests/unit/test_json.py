@@ -21,6 +21,8 @@ import pyarrow as pa
 import pytest
 
 import db_dtypes
+import db_dtypes.json
+
 
 # Check for minimum Pandas version.
 pytest.importorskip("pandas", minversion="1.5.0")
@@ -251,7 +253,7 @@ def cleanup_json_module_for_reload():
 
     # Remove the module from sys.modules so importlib.reload which will happen
     # after the yield statement will re-execute it
-    if json_module_name in sys.modules:
+    if json_module_name in sys.modules:  # pragma: NO COVER
         del sys.modules[json_module_name]
 
     yield  # Run the test that uses this fixture
@@ -260,7 +262,7 @@ def cleanup_json_module_for_reload():
     # This helps isolate from other tests that might import db_dtypes.json
     if original_module:
         sys.modules[json_module_name] = original_module
-    elif json_module_name in sys.modules:
+    elif json_module_name in sys.modules:  # pragma: NO COVER
         # If the test re-imported it but it wasn't there originally, remove it
         del sys.modules[json_module_name]
 
