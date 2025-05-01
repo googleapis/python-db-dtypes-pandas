@@ -33,6 +33,7 @@ import db_dtypes
 # TODO(https://github.com/googleapis/python-db-dtypes-pandas/issues/78): Add
 # compliance tests for reduction operations.
 
+
 # NDArrayBacked2DTests suite added in https://github.com/pandas-dev/pandas/pull/44974
 class Test2DCompat(base.NDArrayBacked2DTests):
     pass
