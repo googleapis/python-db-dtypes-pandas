@@ -30,10 +30,10 @@ description = "Pandas Data Types for SQL systems (BigQuery, Spanner)"
 release_status = "Development Status :: 5 - Production/Stable"
 
 dependencies = [
-    "packaging >= 17.0",
-    "pandas >= 1.5.0",
-    "pyarrow >= 3.0.0",
-    "numpy >= 1.16.6",
+    "numpy >= 1.24.0",
+    "packaging >= 24.2.0",
+    "pandas >= 1.5.3",
+    "pyarrow >= 4.0.0",
 ]
 
 package_root = os.path.abspath(os.path.dirname(__file__))
