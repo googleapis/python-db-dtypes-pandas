@@ -142,7 +142,10 @@ def format(session):
     )
 
 
-@nox.session(python=DEFAULT_PYTHON_VERSION)
+# TODO: the linting process still uses python 3.8.
+# As soon as that gets upgraded, we should be able to revert this session
+# to using the DEFAULT_PYTHON_VERSION.
+@nox.session(python="3.8")
 def lint_setup_py(session):
     """Verify that setup.py is valid (including RST check)."""
     session.install("docutils", "pygments")
