@@ -143,7 +143,12 @@ class BaseDatetimeArray(pandas_backports.OpsMixin, _mixins.NDArrayBackedExtensio
         skipna: bool = True,
     ):
         pandas_backports.numpy_validate_any((), {"out": out, "keepdims": keepdims})
-        result = pandas_backports.nanany(self._ndarray, axis=axis, skipna=skipna)
+        if skipna:
+            # Return True if there is at least one non-NaT value
+            result = not self.isna().all(axis=axis)
+        else:
+            # NaT is treated as True (numpy default)
+            result = self._ndarray.any(axis=axis)
         return result
 
     def all(
@@ -155,7 +160,20 @@ class BaseDatetimeArray(pandas_backports.OpsMixin, _mixins.NDArrayBackedExtensio
         skipna: bool = True,
     ):
         pandas_backports.numpy_validate_all((), {"out": out, "keepdims": keepdims})
-        result = pandas_backports.nanall(self._ndarray, axis=axis, skipna=skipna)
+        if skipna:
+            # Treat NaT as True. Returns True if all non-NaT values are True.
+            # Since all non-NaT datetime values are True, this is equivalent to:
+            # Check if all values are True, treating NaT as True.
+            # NaT != NaT is True, non-NaT != NaT is True.
+            # isna() is True for NaT, False otherwise.
+            # logical_or(self._ndarray != np.datetime64("NaT"), self.isna()) -> True for all elements
+            is_true_or_na = numpy.logical_or(
+                self._ndarray != numpy.datetime64("NaT"), self.isna()
+            )
+            result = is_true_or_na.all(axis=axis)
+        else:
+            # NaT is treated as True (numpy default)
+            result = self._ndarray.all(axis=axis)
         return result
 
     def min(self, *, axis: Optional[int] = None, skipna: bool = True, **kwargs):
