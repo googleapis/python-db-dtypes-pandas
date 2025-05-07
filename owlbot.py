@@ -44,10 +44,6 @@ s.replace(
     [".coveragerc"], "google/cloud/__init__.py", "db_dtypes/requirements.py",
 )
 
-s.replace(
-    [".github/workflows/lint.yml"], 'python-version: "3.8"', 'python-version: "3.9"',
-)
-
 # ----------------------------------------------------------------------------
 # Samples templates
 # ----------------------------------------------------------------------------
