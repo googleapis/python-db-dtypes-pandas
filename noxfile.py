@@ -85,8 +85,7 @@ nox.options.sessions = [
 # Error if a python version is missing
 nox.options.error_on_missing_interpreters = True
 
-# TODO: the owlbot-python docker image still has python 3.8 installed (
-# and only 3.8).
+# TODO: the linting process still uses python 3.8.
 # As soon as that gets upgraded, we should be able to revert this session
 # to using the DEFAULT_PYTHON_VERSION.
 @nox.session(python="3.8")
