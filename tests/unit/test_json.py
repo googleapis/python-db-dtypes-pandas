@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import json
-import sys
 
 import numpy as np
 import pandas as pd
@@ -227,76 +226,3 @@ def test_json_arrow_record_batch():
         == '{"null_field":null,"order":{"address":{"city":"Anytown","street":"123 Main St"},"items":["book","pen","computer"],"total":15}}'
     )
     assert s[6] == "null"
-
-
-@pytest.fixture
-def cleanup_json_module_for_reload():
-    """
-    Fixture to ensure db_dtypes.json is registered and then removed
-    from sys.modules to allow testing the registration except block via reload.
-    """
-
-    json_module_name = "db_dtypes.json"
-    original_module = sys.modules.get(json_module_name)
-
-    # Ensure the type is registered initially (usually by the first import)
-    try:
-        # Make sure the module is loaded so the type exists
-        import db_dtypes.json
-
-        # Explicitly register just in case it wasn't, or was cleaned up elsewhere.
-        # This might raise ArrowKeyError itself if already registered, which is fine here.
-        pa.register_extension_type(db_dtypes.json.JSONArrowType())
-
-    except pa.ArrowKeyError:
-        pass  # Already registered is the state we want before the test runs
-
-    # Remove the module from sys.modules so importlib.reload which will happen
-    # after the yield statement will re-execute it
-    if json_module_name in sys.modules:  # pragma: NO COVER
-        del sys.modules[json_module_name]
-
-    yield  # Run the test that uses this fixture
-
-    # Cleanup: Put the original module back if it existed
-    # This helps isolate from other tests that might import db_dtypes.json
-    if original_module:
-        sys.modules[json_module_name] = original_module
-    elif json_module_name in sys.modules:  # pragma: NO COVER
-        # If the test re-imported it but it wasn't there originally, remove it
-        del sys.modules[json_module_name]
-
-    # Note: PyArrow doesn't have a public API to unregister types easily,
-    # thus we are using the testing pattern of module isolation/reloading.
-
-
-# Test specifically for the fixture's pre-yield removal logic
-def test_fixture_removes_module_if_present(cleanup_json_module_for_reload):
-    """
-    Tests that the cleanup_json_module_for_reload fixture removes
-    db_dtypes.json from sys.modules before yielding to the test.
-    This specifically targets the 'if json_module_name in sys.modules:' block.
-    """
-    # This test runs *after* the fixture's `yield`.
-    # The fixture should have removed the module if it was present.
-
-    json_module_name = "db_dtypes.json"
-
-    assert (
-        json_module_name not in sys.modules
-    ), f"The fixture cleanup_json_module_for_reload should have removed {json_module_name}"
-
-
-def test_json_arrow_type_reregistration_is_handled(cleanup_json_module_for_reload):
-    """
-    Verify that attempting to re-register JSONArrowType via module reload
-    is caught by the except block and does not raise an error.
-    """
-
-    # Re-importing the module after the fixture removed it from sys.modules
-    # forces Python to execute the module's top-level code again.
-    # This includes the pa.register_extension_type call.
-
-    import db_dtypes.json  # noqa: F401
-
-    assert True, "Module re-import completed without error, except block likely worked."

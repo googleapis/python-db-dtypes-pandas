@@ -337,22 +337,6 @@ class DateArray(core.BaseDatetimeArray):
         return super().__sub__(other)
 
 
-def _determine_all(json_array_type, json_dtype_type):
-    """Determines the list for __all__ based on JSON type availability."""
-    base_all = [
-        "__version__",
-        "DateArray",
-        "DateDtype",
-        "TimeArray",
-        "TimeDtype",
-    ]
-    # Check if both JSON types are available (truthy)
-    if json_array_type and json_dtype_type:
-        return base_all + ["JSONDtype", "JSONArray", "JSONArrowType"]
-    else:
-        return base_all
-
-
 def _check_python_version():
     """Checks the runtime Python version and issues a warning if needed."""
     sys_major, sys_minor, sys_micro = _versions_helpers.extract_runtime_version()
@@ -370,4 +354,13 @@ def _check_python_version():
 
 _check_python_version()
 
-__all__ = _determine_all(JSONArray, JSONDtype)
+__all__ = [
+    "__version__",
+    "DateArray",
+    "DateDtype",
+    "TimeArray",
+    "TimeDtype",
+    "JSONDtype",
+    "JSONArray",
+    "JSONArrowType",
+]
