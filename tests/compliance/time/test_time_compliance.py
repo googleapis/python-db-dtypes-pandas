@@ -56,8 +56,15 @@ class TestDtype(base.BaseDtypeTests):
 
 
 class TestGetitem(base.BaseGetitemTests):
-    pass
-
+    def test_take_pandas_style_negative_raises(self, data, na_value):
+    # This test was failing compliance checks because it attempted to match
+    # a pytest regex match using an empty string (""), which pytest version
+    # 8.4.0 stopped allowing.
+    # The test has been updated in pandas main so that it will
+    # no longer fail, but the fix is not expected to be released until
+    # at least pandas version 3.0 (current version is 2.3).
+        with pytest.raises(ValueError):
+            data.take([0, -2], fill_value=na_value, allow_fill=True)
 
 class TestGroupby(base.BaseGroupbyTests):
     pass
@@ -95,6 +102,20 @@ class TestMethods(base.BaseMethodsTests):
 
         tm.assert_series_equal(result, expected)
 
+    def test_argmax_argmin_no_skipna_notimplemented(self, data_missing_for_sorting):
+        # This test was failing compliance checks because it attempted to match
+        # a pytest regex match using an empty string (""), which pytest version
+        # 8.4.0 stopped allowing.
+        # The test has been updated in pandas main so that it will
+        # no longer fail, but the fix is not expected to be released until
+        # at least pandas version 3.0 (current version is 2.3)
+        data = data_missing_for_sorting
+
+        with pytest.raises(NotImplementedError):
+            data.argmin(skipna=False)
+
+        with pytest.raises(NotImplementedError):
+            data.argmax(skipna=False)
 
 class TestParsing(base.BaseParsingTests):
     pass
@@ -109,4 +130,15 @@ class TestReshaping(base.BaseReshapingTests):
 
 
 class TestSetitem(base.BaseSetitemTests):
-    pass
+    def test_setitem_invalid(self, data, invalid_scalar):
+    # This test was failing compliance checks because it attempted to match
+    # a pytest regex match using an empty string (""), which pytest version
+    # 8.4.0 stopped allowing.
+    # The test has been updated in pandas main so that it will
+    # no longer fail, but the fix is not expected to be released until
+    # at least pandas version 3.0 (current version is 2.3)
+        with pytest.raises((ValueError, TypeError)):
+            data[0] = invalid_scalar
+
+        with pytest.raises((ValueError, TypeError)):
+            data[:] = invalid_scalar
