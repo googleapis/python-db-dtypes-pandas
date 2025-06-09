@@ -215,6 +215,7 @@ class TestJSONArrayMethods(base.BaseMethodsTests):
         with pytest.raises(NotImplementedError):
             data.argmax(skipna=False)
 
+
 class TestJSONArrayMissing(base.BaseMissingTests):
     @pytest.mark.xfail(reason="Setting a dict as a scalar")
     def test_fillna_series(self):
@@ -380,7 +381,6 @@ class TestJSONArraySetitem(base.BaseSetitemTests):
     def test_setitem_preserves_views(self, data):
         super().test_setitem_preserves_views(data)
 
-
     def test_setitem_invalid(self, data, invalid_scalar):
         # This test was failing compliance checks because it attempted to match
         # a pytest regex match using an empty string (""), which pytest version
@@ -393,8 +393,6 @@ class TestJSONArraySetitem(base.BaseSetitemTests):
 
         with pytest.raises((ValueError, TypeError)):
             data[:] = invalid_scalar
-
-
 
 
 class TestJSONArrayDim2Compat(base.Dim2CompatTests):
