@@ -143,6 +143,23 @@ class TestJSONArrayInterface(base.BaseInterfaceTests):
     def test_view(self, data):
         super().test_view(data)
 
+    def test_array_interface_copy(self, data):
+        import numpy as np
+        import warnings
+        from pandas.compat.numpy import np_version_gt2
+        
+        result_copy1 = np.array(data, copy=True)
+        result_copy2 = np.array(data, copy=True)
+        assert not np.may_share_memory(result_copy1, result_copy2)
+
+        if not np_version_gt2:
+            # copy=False semantics are only supported in NumPy>=2.
+            return
+
+        result_nocopy1 = np.array(data, copy=False)
+        result_nocopy2 = np.array(data, copy=False)
+        assert not np.may_share_memory(result_nocopy1, result_nocopy2)
+
 
 class TestJSONArrayParsing(base.BaseParsingTests):
     @pytest.mark.xfail(reason="data type 'json' not understood")
@@ -264,7 +281,20 @@ class TestJSONArrayPrinting(base.BasePrintingTests):
 
 
 class TestJSONArrayReduce(base.BaseReduceTests):
-    pass
+    @pytest.mark.filterwarnings("ignore::RuntimeWarning")
+    @pytest.mark.parametrize("skipna", [True, False])
+    def test_reduce_series_numeric(self, data, all_numeric_reductions, skipna):
+        op_name = all_numeric_reductions
+        ser = pd.Series(data)
+
+        if not self._supports_reduction(ser, op_name):
+            # Sum does not raise an Error (TypeError or otherwise)            
+            if op_name != "sum":
+                with pytest.raises(TypeError):
+                    getattr(ser, op_name)(skipna=skipna)
+        else:
+            # min/max with empty produce numpy warnings
+            self.check_reduce(ser, op_name, skipna)
 
 
 class TestJSONArrayReshaping(base.BaseReshapingTests):

@@ -71,8 +71,23 @@ class TestIndex(base.BaseIndexTests):
 
 
 class TestInterface(base.BaseInterfaceTests):
-    pass
+    def test_array_interface_copy(self, data):
+        import numpy as np
+        import warnings
+        from pandas.compat.numpy import np_version_gt2
+        
+        result_copy1 = np.array(data, copy=True)
+        result_copy2 = np.array(data, copy=True)
+        assert not np.may_share_memory(result_copy1, result_copy2)
 
+        if not np_version_gt2:
+            # copy=False semantics are only supported in NumPy>=2.
+            return
+
+        with pytest.raises(ValueError):
+            result_nocopy1 = np.array(data, copy=False)
+            result_nocopy2 = np.array(data, copy=False)
+            assert np.may_share_memory(result_nocopy1, result_nocopy2)
 
 class TestMissing(base.BaseMissingTests):
     pass
