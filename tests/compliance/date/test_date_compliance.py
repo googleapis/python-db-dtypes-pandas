@@ -75,7 +75,7 @@ class TestInterface(base.BaseInterfaceTests):
         import numpy as np
         import warnings
         from pandas.compat.numpy import np_version_gt2
-        
+
         result_copy1 = np.array(data, copy=True)
         result_copy2 = np.array(data, copy=True)
         assert not np.may_share_memory(result_copy1, result_copy2)
@@ -88,6 +88,7 @@ class TestInterface(base.BaseInterfaceTests):
             result_nocopy1 = np.array(data, copy=False)
             result_nocopy2 = np.array(data, copy=False)
             assert np.may_share_memory(result_nocopy1, result_nocopy2)
+
 
 class TestMissing(base.BaseMissingTests):
     pass
