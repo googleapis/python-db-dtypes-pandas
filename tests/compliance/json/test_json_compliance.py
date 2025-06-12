@@ -144,7 +144,7 @@ class TestJSONArrayInterface(base.BaseInterfaceTests):
         super().test_view(data)
 
     def test_array_interface_copy(self, data):
-        # This test was failing compliance checks due to changes in how 
+        # This test was failing compliance checks due to changes in how
         # numpy handles processing when np.array(obj, copy=False).
         # Until pandas changes the existing tests, this compliance test
         # will continue to fail.
