@@ -73,7 +73,6 @@ class TestIndex(base.BaseIndexTests):
 class TestInterface(base.BaseInterfaceTests):
     def test_array_interface_copy(self, data):
         import numpy as np
-        import warnings
         from pandas.compat.numpy import np_version_gt2
 
         result_copy1 = np.array(data, copy=True)
