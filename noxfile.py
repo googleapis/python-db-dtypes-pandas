@@ -89,7 +89,7 @@ nox.options.error_on_missing_interpreters = True
 # TODO: the linting process still uses python 3.8.
 # As soon as that gets upgraded, we should be able to revert this session
 # to using the DEFAULT_PYTHON_VERSION.
-@nox.session(python=DEFAULT_PYTHON_VERSION)
+@nox.session(python="3.10")
 def lint(session):
     """Run linters.
 
