@@ -86,6 +86,7 @@ nox.options.sessions = [
 # Error if a python version is missing
 nox.options.error_on_missing_interpreters = True
 
+
 @nox.session(python=LINT_PYTHON_VERSION)
 def lint(session):
     """Run linters.
@@ -137,6 +138,7 @@ def format(session):
         "black",
         *LINT_PATHS,
     )
+
 
 @nox.session(python=LINT_PYTHON_VERSION)
 def lint_setup_py(session):
