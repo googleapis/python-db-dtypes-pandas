@@ -33,6 +33,7 @@ ISORT_VERSION = "isort==5.11.0"
 LINT_PATHS = ["docs", "db_dtypes", "tests", "noxfile.py", "setup.py"]
 
 DEFAULT_PYTHON_VERSION = "3.9"
+LINT_PYTHON_VERSION = "3.10"
 
 UNIT_TEST_PYTHON_VERSIONS: List[str] = [
     "3.9",
@@ -85,11 +86,7 @@ nox.options.sessions = [
 # Error if a python version is missing
 nox.options.error_on_missing_interpreters = True
 
-
-# TODO: the linting process still uses python 3.8.
-# As soon as that gets upgraded, we should be able to revert this session
-# to using the DEFAULT_PYTHON_VERSION.
-@nox.session(python="3.10")
+@nox.session(python=LINT_PYTHON_VERSION)
 def lint(session):
     """Run linters.
 
@@ -141,11 +138,7 @@ def format(session):
         *LINT_PATHS,
     )
 
-
-# TODO: the linting process still uses python 3.8.
-# As soon as that gets upgraded, we should be able to revert this session
-# to using the DEFAULT_PYTHON_VERSION.
-@nox.session(python="3.8")
+@nox.session(python=LINT_PYTHON_VERSION)
 def lint_setup_py(session):
     """Verify that setup.py is valid (including RST check)."""
     session.install("docutils", "pygments")
