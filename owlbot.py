@@ -43,7 +43,7 @@ s.move(
         ".github/workflows/docs.yml", # to avoid overwriting python version
         ".github/workflows/lint.yml", # to avoid overwriting python version
         "noxfile.py",
-        "renovate.json",
+        "renovate.json", # to avoid overwriting the ignorePaths list.
     ]
 )
 
