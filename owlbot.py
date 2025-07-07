@@ -28,13 +28,27 @@ common = gcp.CommonTemplates()
 # Add templated files
 # ----------------------------------------------------------------------------
 templated_files = common.py_library(
-    system_test_python_versions=["3.8"],
+    system_test_python_versions=["3.9"],
     cov_level=100,
     intersphinx_dependencies={
         "pandas": "https://pandas.pydata.org/pandas-docs/stable/"
     },
 )
-s.move(templated_files, excludes=["docs/multiprocessing.rst", "README.rst", ".github/workflows/unittest.yml", "noxfile.py"])
+s.move(
+    templated_files,
+    excludes=[
+        "docs/multiprocessing.rst",
+        "README.rst",
+        ".github/workflows/unittest.yml",
+        ".github/workflows/docs.yml", # to avoid overwriting python version
+        ".github/workflows/lint.yml", # to avoid overwriting python version
+        "noxfile.py",
+        "renovate.json", # to avoid overwriting the ignorePaths list additions:
+                         # ".github/workflows/docs.yml AND lint.yml" specifically
+                         # the version of python referenced in each of those files.
+                         # Currently renovate bot wants to change 3.10 to 3.13.
+    ]
+)
 
 # ----------------------------------------------------------------------------
 # Fixup files

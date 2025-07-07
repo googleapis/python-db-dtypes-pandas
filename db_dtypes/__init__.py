@@ -21,7 +21,6 @@ from typing import Optional, Union
 import warnings
 
 import numpy
-import packaging.version
 import pandas
 import pandas.api.extensions
 from pandas.errors import OutOfBoundsDatetime
@@ -29,7 +28,7 @@ import pyarrow
 import pyarrow.compute
 
 from db_dtypes import core
-from db_dtypes.version import __version__
+from db_dtypes.json import JSONArray, JSONDtype, JSONArrowType  # noqa: F401
 
 from . import _versions_helpers
 
@@ -45,15 +44,6 @@ _NP_DTYPE = "datetime64[ns]"
 # TODO(https://github.com/googleapis/python-db-dtypes-pandas/issues/63): Keep
 # nanosecond precision when boxing scalars.
 _NP_BOX_DTYPE = "datetime64[us]"
-
-
-# To use JSONArray and JSONDtype, you'll need Pandas 1.5.0 or later. With the removal
-# of Python 3.7 compatibility, the minimum Pandas version will be updated to 1.5.0.
-if packaging.version.Version(pandas.__version__) >= packaging.version.Version("1.5.0"):
-    from db_dtypes.json import JSONArray, JSONArrowType, JSONDtype
-else:
-    JSONArray = None
-    JSONDtype = None
 
 
 @pandas.api.extensions.register_extension_dtype
@@ -347,34 +337,30 @@ class DateArray(core.BaseDatetimeArray):
         return super().__sub__(other)
 
 
-sys_major, sys_minor, sys_micro = _versions_helpers.extract_runtime_version()
-if sys_major == 3 and sys_minor in (7, 8):
-    warnings.warn(
-        "The python-bigquery library will stop supporting Python 3.7 "
-        "and Python 3.8 in a future major release expected in Q4 2024. "
-        f"Your Python version is {sys_major}.{sys_minor}.{sys_micro}. We "
-        "recommend that you update soon to ensure ongoing support. For "
-        "more details, see: [Google Cloud Client Libraries Supported Python Versions policy](https://cloud.google.com/python/docs/supported-python-versions)",
-        PendingDeprecationWarning,
-    )
+def _check_python_version():
+    """Checks the runtime Python version and issues a warning if needed."""
+    sys_major, sys_minor, sys_micro = _versions_helpers.extract_runtime_version()
+    if sys_major == 3 and sys_minor in (7, 8):
+        warnings.warn(
+            "The python-bigquery library as well as the python-db-dtypes-pandas library no "
+            "longer supports Python 3.7 and Python 3.8. "
+            f"Your Python version is {sys_major}.{sys_minor}.{sys_micro}. We "
+            "recommend that you update soon to ensure ongoing support. For "
+            "more details, see: [Google Cloud Client Libraries Supported Python Versions policy](https://cloud.google.com/python/docs/supported-python-versions)",
+            FutureWarning,
+            stacklevel=2,  # Point warning to the caller of __init__
+        )
 
 
-if not JSONArray or not JSONDtype:
-    __all__ = [
-        "__version__",
-        "DateArray",
-        "DateDtype",
-        "TimeArray",
-        "TimeDtype",
-    ]
-else:
-    __all__ = [
-        "__version__",
-        "DateArray",
-        "DateDtype",
-        "JSONDtype",
-        "JSONArray",
-        "JSONArrowType",
-        "TimeArray",
-        "TimeDtype",
-    ]
+_check_python_version()
+
+__all__ = [
+    "__version__",
+    "DateArray",
+    "DateDtype",
+    "TimeArray",
+    "TimeDtype",
+    "JSONDtype",
+    "JSONArray",
+    "JSONArrowType",
+]

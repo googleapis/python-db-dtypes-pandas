@@ -11,11 +11,11 @@ branchProtectionRules:
     - 'cla/google'
     - 'docs'
     - 'lint'
-    - 'unit (3.8)'
     - 'unit (3.9)'
     - 'unit (3.10)'
     - 'unit (3.11)'
     - 'unit (3.12)'
+    - 'unit (3.13)'
     - 'cover'
 permissionRules:
   - team: actools-python

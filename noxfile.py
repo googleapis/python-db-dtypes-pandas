@@ -32,9 +32,16 @@ BLACK_VERSION = "black[jupyter]==23.7.0"
 ISORT_VERSION = "isort==5.11.0"
 LINT_PATHS = ["docs", "db_dtypes", "tests", "noxfile.py", "setup.py"]
 
-DEFAULT_PYTHON_VERSION = "3.8"
+DEFAULT_PYTHON_VERSION = "3.9"
+LINT_PYTHON_VERSION = "3.10"
 
-UNIT_TEST_PYTHON_VERSIONS: List[str] = ["3.7", "3.8", "3.9", "3.10", "3.11", "3.12"]
+UNIT_TEST_PYTHON_VERSIONS: List[str] = [
+    "3.9",
+    "3.10",
+    "3.11",
+    "3.12",
+    "3.13",
+]
 UNIT_TEST_STANDARD_DEPENDENCIES = [
     "mock",
     "asyncmock",
@@ -48,7 +55,7 @@ UNIT_TEST_DEPENDENCIES: List[str] = []
 UNIT_TEST_EXTRAS: List[str] = []
 UNIT_TEST_EXTRAS_BY_PYTHON: Dict[str, List[str]] = {}
 
-SYSTEM_TEST_PYTHON_VERSIONS: List[str] = ["3.8"]
+SYSTEM_TEST_PYTHON_VERSIONS: List[str] = ["3.9"]
 SYSTEM_TEST_STANDARD_DEPENDENCIES: List[str] = [
     "mock",
     "pytest",
@@ -80,7 +87,7 @@ nox.options.sessions = [
 nox.options.error_on_missing_interpreters = True
 
 
-@nox.session(python=DEFAULT_PYTHON_VERSION)
+@nox.session(python=LINT_PYTHON_VERSION)
 def lint(session):
     """Run linters.
 
@@ -88,6 +95,7 @@ def lint(session):
     serious code quality issues.
     """
     session.install(FLAKE8_VERSION, BLACK_VERSION)
+    session.run("python", "-m", "pip", "freeze")
     session.run(
         "black",
         "--check",
@@ -96,10 +104,15 @@ def lint(session):
     session.run("flake8", "db_dtypes", "tests")
 
 
-@nox.session(python=DEFAULT_PYTHON_VERSION)
+# TODO: the owlbot-python docker image still has python 3.8 installed (
+# and only 3.8).
+# As soon as that gets upgraded, we should be able to revert this session
+# to using the DEFAULT_PYTHON_VERSION.
+@nox.session(python="3.8")
 def blacken(session):
     """Run black. Format code to uniform standard."""
     session.install(BLACK_VERSION)
+    session.run("python", "-m", "pip", "freeze")
     session.run(
         "black",
         *LINT_PATHS,
@@ -115,6 +128,7 @@ def format(session):
     session.install(BLACK_VERSION, ISORT_VERSION)
     # Use the --fss option to sort imports using strict alphabetical order.
     # See https://pycqa.github.io/isort/docs/configuration/options.html#force-sort-within-sections
+    session.run("python", "-m", "pip", "freeze")
     session.run(
         "isort",
         "--fss",
@@ -126,10 +140,11 @@ def format(session):
     )
 
 
-@nox.session(python=DEFAULT_PYTHON_VERSION)
+@nox.session(python=LINT_PYTHON_VERSION)
 def lint_setup_py(session):
     """Verify that setup.py is valid (including RST check)."""
     session.install("docutils", "pygments")
+    session.run("python", "-m", "pip", "freeze")
     session.run("python", "setup.py", "check", "--restructuredtext", "--strict")
 
 
@@ -169,11 +184,13 @@ def default(session, tests_path):
     )
     install_unittest_dependencies(session, "-c", constraints_path)
 
+    session.run("python", "-m", "pip", "freeze")
+
     # Run py.test against the unit tests.
     session.run(
         "py.test",
         "--quiet",
-        "-W default::PendingDeprecationWarning",
+        "-W default::FutureWarning",
         f"--junitxml={os.path.split(tests_path)[-1]}_{session.python}_sponge_log.xml",
         "--cov=db_dtypes",
         "--cov=tests/unit",
@@ -251,7 +268,7 @@ def prerelease(session, tests_path):
     session.run(
         "py.test",
         "--quiet",
-        "-W default::PendingDeprecationWarning",
+        "-W default::FutureWarning",
         f"--junitxml={os.path.split(tests_path)[-1]}_prerelease_{session.python}_sponge_log.xml",
         "--cov=db_dtypes",
         "--cov=tests/unit",
@@ -342,6 +359,8 @@ def system(session):
 
     install_systemtest_dependencies(session, "-c", constraints_path)
 
+    session.run("python", "-m", "pip", "freeze")
+
     # Run py.test against the system tests.
     if system_test_exists:
         session.run(
@@ -371,6 +390,8 @@ def cover(session):
     test runs (not system test runs), and then erases coverage data.
     """
     session.install("coverage", "pytest-cov")
+    session.run("python", "-m", "pip", "freeze")
+
     session.run("coverage", "report", "--show-missing", "--fail-under=100")
 
     session.run("coverage", "erase")
@@ -397,6 +418,7 @@ def docs(session):
     )
 
     shutil.rmtree(os.path.join("docs", "_build"), ignore_errors=True)
+    session.run("python", "-m", "pip", "freeze")
     session.run(
         "sphinx-build",
         "-W",  # warnings as errors
@@ -432,6 +454,7 @@ def docfx(session):
     )
 
     shutil.rmtree(os.path.join("docs", "_build"), ignore_errors=True)
+    session.run("python", "-m", "pip", "freeze")
     session.run(
         "sphinx-build",
         "-T",  # show full traceback on exception
@@ -515,6 +538,7 @@ def prerelease_deps(session):
         "requests",
     ]
     session.install(*other_deps)
+    session.run("python", "-m", "pip", "freeze")
 
     # Print out prerelease package versions
     session.run(
