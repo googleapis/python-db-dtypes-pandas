@@ -1,5 +1,9 @@
 # Changelog
 
+[PyPI History][1]
+
+[1]: https://pypi.org/project/db-dtypes/#history
+
 ## [1.4.3](https://github.com/googleapis/python-db-dtypes-pandas/compare/v1.4.2...v1.4.3) (2025-05-12)
 
 
