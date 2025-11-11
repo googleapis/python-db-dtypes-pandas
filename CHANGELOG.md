@@ -4,6 +4,13 @@
 
 [1]: https://pypi.org/project/db-dtypes/#history
 
+## [1.5.0](https://github.com/googleapis/google-cloud-python/compare/db-dtypes-v1.4.3...db-dtypes-v1.5.0) (2025-11-11)
+
+
+### Features
+
+* some feature ([5153f9509c8ccd8f11566d9d3b7cbe3cead75459](https://github.com/googleapis/google-cloud-python/commit/5153f9509c8ccd8f11566d9d3b7cbe3cead75459))
+
 ## [1.4.4](https://github.com/googleapis/python-db-dtypes-pandas/compare/v1.4.3...v1.4.4) (2025-09-08)
 
 
