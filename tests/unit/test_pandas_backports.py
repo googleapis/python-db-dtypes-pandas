@@ -34,9 +34,7 @@ def _import_side_effect(module_name, result_return=None, result_raise=None):
             else:
                 return result_return
         else:
-            return REAL_IMPORT(name, *args, **kwargs)
-
-    return _impl
+            return REAL_IMPORT(name, *args, **kwargs)  # pragma: no cover
 
 
 @mock.patch("builtins.__import__")
