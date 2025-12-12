@@ -27,14 +27,14 @@ def _import_side_effect(module_name, result_return=None, result_raise=None):
     arguments. Otherwise, it will default to regular import behaviour
     """
 
-    def _impl(name, *args, **kwargs):
+    def _impl(name, *args, **kwargs):  # pragma: no cover
         if name == module_name:
             if result_raise:
                 raise result_raise
             else:
                 return result_return
         else:
-            return REAL_IMPORT(name, *args, **kwargs)  # pragma: no cover
+            return REAL_IMPORT(name, *args, **kwargs)
 
     return _impl
 
