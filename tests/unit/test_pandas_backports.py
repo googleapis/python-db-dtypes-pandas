@@ -33,7 +33,7 @@ def _import_side_effect(module_name, result_return=None, result_raise=None):
                 raise result_raise
             else:
                 return result_return
-        else:  # pragma: no cover
+        else:  # pragma: NO COVER
             return REAL_IMPORT(name, *args, **kwargs)
 
     return _impl
