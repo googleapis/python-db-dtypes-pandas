@@ -22,10 +22,11 @@ REAL_IMPORT = builtins.__import__
 
 def _import_side_effect(module_name, result_return=None, result_raise=None):
     """
-    Builds a side-effect for mocking the import function. 
+    Builds a side-effect for mocking the import function.
     If the imported package matches `name`, it will return or raise based on
     arguments. Otherwise, it will default to regular import behaviour
     """
+
     def _impl(name, *args, **kwargs):
         if name == module_name:
             if result_raise:
@@ -34,6 +35,7 @@ def _import_side_effect(module_name, result_return=None, result_raise=None):
                 return result_return
         else:
             return REAL_IMPORT(name, *args, **kwargs)
+
     return _impl
 
 
@@ -50,8 +52,10 @@ def test_import_default_module_found(mock_import):
 
 
 @mock.patch("builtins.__import__")
-def test_import_default_module_not_foundX(mock_import):
-    mock_import.side_effect = _import_side_effect("module_name", result_raise=ModuleNotFoundError)
+def test_import_default_module_not_found(mock_import):
+    mock_import.side_effect = _import_side_effect(
+        "module_name", result_raise=ModuleNotFoundError
+    )
 
     default_class = type("OpsMixin", (), {})  # Dummy class
     result = pandas_backports.import_default("module_name", default=default_class)
