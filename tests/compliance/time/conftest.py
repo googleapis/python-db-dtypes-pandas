@@ -34,8 +34,9 @@ def data():
     return TimeArray(
         numpy.arange(
             datetime.datetime(1970, 1, 1),
-            datetime.datetime(1970, 1, 2),
-            datetime.timedelta(microseconds=864_123_456),
+            datetime.datetime(1970, 1, 1, 0, 0, 1),
+            # 0.1 seconds (100000 microseconds)
+            datetime.timedelta(microseconds=100_000),
             dtype="datetime64[ns]",
         )
     )

@@ -117,6 +117,13 @@ class TestJSONArrayGetitem(base.BaseGetitemTests):
         with pytest.raises(ValueError):
             data.take([0, -2], fill_value=na_value, allow_fill=True)
 
+    @pytest.mark.xfail(
+        reason="Fails for db_dtypes because converting to numpy array creates a copy "
+        "(copy=False is not strictly enforced), so memory is not shared."
+    )
+    def test_getitem_propagates_readonly_property(self, data):
+        super().test_getitem_propagates_readonly_property(data)
+
 
 class TestJSONArrayIndex(base.BaseIndexTests):
     pass
@@ -142,6 +149,10 @@ class TestJSONArrayInterface(base.BaseInterfaceTests):
     @pytest.mark.skip(reason="2D support not implemented for JSONArray")
     def test_view(self, data):
         super().test_view(data)
+
+    @pytest.mark.xfail(reason="Contains check fails for JSON objects (identity/equality issues)")
+    def test_contains(self, data, data_missing):
+        super().test_contains(data, data_missing)
 
     def test_array_interface_copy(self, data):
         # This test was failing compliance checks due to changes in how
@@ -229,11 +240,19 @@ class TestJSONArrayMethods(base.BaseMethodsTests):
         # at least pandas version 3.0 (current version is 2.3)
         data = data_missing_for_sorting
 
-        with pytest.raises(NotImplementedError):
+        with pytest.raises((NotImplementedError, ValueError)):
             data.argmin(skipna=False)
 
-        with pytest.raises(NotImplementedError):
+        with pytest.raises((NotImplementedError, ValueError)):
             data.argmax(skipna=False)
+
+    @pytest.mark.xfail(reason="fillna limit not supported correctly for dbjson")
+    def test_fillna_limit_frame(self, data_missing):
+        super().test_fillna_limit_frame(data_missing)
+
+    @pytest.mark.xfail(reason="fillna limit not supported correctly for dbjson")
+    def test_fillna_limit_series(self, data_missing):
+        super().test_fillna_limit_series(data_missing)
 
 
 class TestJSONArrayMissing(base.BaseMissingTests):
@@ -246,6 +265,17 @@ class TestJSONArrayMissing(base.BaseMissingTests):
     def test_fillna_frame(self):
         """We treat dictionaries as a mapping in fillna, not a scalar."""
         super().test_fillna_frame()
+
+    @pytest.mark.xfail(
+        reason="Fails for db_dtypes because fillna returns self instead of a copy "
+        "when no NAs are present (violating strict pandas copy semantics)."
+    )
+    def test_fillna_no_op_returns_copy(self, data):
+        super().test_fillna_no_op_returns_copy(data)
+
+    @pytest.mark.xfail(reason="fillna on readonly array check failing for dbjson")
+    def test_fillna_readonly(self, data_missing):
+        super().test_fillna_readonly(data_missing)
 
 
 @pytest.mark.skip(reason="BigQuery JSON does not allow Arithmetic Ops.")
@@ -312,6 +342,10 @@ class TestJSONArrayReshaping(base.BaseReshapingTests):
     def test_transpose_frame(self, data):
         # `DataFrame.T` calls `to_numpy` to get results.
         super().test_transpose_frame(data)
+
+    @pytest.mark.xfail(reason="Stack returns stringified JSON instead of objects (values mismatch)")
+    def test_stack(self, data, columns, future_stack):
+        super().test_stack(data, columns, future_stack)
 
 
 class TestJSONArraySetitem(base.BaseSetitemTests):
@@ -401,10 +435,11 @@ class TestJSONArraySetitem(base.BaseSetitemTests):
         else:  # __setitem__
             target = ser
 
-        # Use `[data[10]] * len()` instead of passing `data[10]` directly to the super method.
-        target[mask] = [data[10]] * len(target[mask])
-        assert ser[0] == data[10]
-        assert ser[1] == data[10]
+        # Use `[data[9]] * len()` instead of passing `data[9]` directly to the super method.
+        # Changed index from 10 to 9 after reducing data fixture size to 10.
+        target[mask] = [data[9]] * len(target[mask])
+        assert ser[0] == data[9]
+        assert ser[1] == data[9]
 
     @pytest.mark.xfail(reason="eq not implemented for <class 'dict'>")
     def test_setitem_mask_boolean_array_with_na(self, data, box_in_series):

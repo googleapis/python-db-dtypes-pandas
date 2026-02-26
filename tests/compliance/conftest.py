@@ -173,3 +173,8 @@ def use_numpy(request):
     https://github.com/pandas-dev/pandas/blob/main/pandas/tests/extension/conftest.py
     """
     return request.param
+
+@pytest.fixture
+def using_nan_is_na(na_value):
+    import numpy as np
+    return na_value is np.nan

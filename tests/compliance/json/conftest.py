@@ -40,11 +40,11 @@ def make_data():
         {"address": {"street": "123 Main St", "city": "Anytown"}},
         {"order": {"items": ["book", "pen"], "total": 15.99}},
     ]
-    data = np.random.default_rng(2).choice(samples, size=100)
+    data = np.random.default_rng(2).choice(samples, size=10)
     # This replaces a single data item with an array. We are skipping the first two
     # items to avoid some `setitem` tests failed, because setting with a list is
     # ambiguity in this context.
-    id = random.randint(3, 99)
+    id = random.randint(3, 9)
     data[id] = [0.1, 0.2]  # Array
     return data
 

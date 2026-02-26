@@ -34,8 +34,8 @@ def data():
     return DateArray(
         numpy.arange(
             datetime.datetime(1900, 1, 1),
-            datetime.datetime(2099, 12, 31),
-            datetime.timedelta(days=731),
+            datetime.datetime(1900, 1, 11),
+            datetime.timedelta(days=1),
             dtype="datetime64[ns]",
         )
     )

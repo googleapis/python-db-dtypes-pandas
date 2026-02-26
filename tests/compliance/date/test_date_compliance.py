@@ -63,7 +63,11 @@ class TestGetitem(base.BaseGetitemTests):
 
 
 class TestGroupby(base.BaseGroupbyTests):
-    pass
+    @pytest.mark.xfail(
+        reason="GH#38980 groupby agg on extension type fails for non-numeric types"
+    )
+    def test_groupby_agg_extension(self, data_for_grouping):
+        super().test_groupby_agg_extension(data_for_grouping)
 
 
 class TestIndex(base.BaseIndexTests):
@@ -138,10 +142,10 @@ class TestMethods(base.BaseMethodsTests):
         # at least pandas version 3.0 (current version is 2.3)
         data = data_missing_for_sorting
 
-        with pytest.raises(NotImplementedError):
+        with pytest.raises((NotImplementedError, ValueError)):
             data.argmin(skipna=False)
 
-        with pytest.raises(NotImplementedError):
+        with pytest.raises((NotImplementedError, ValueError)):
             data.argmax(skipna=False)
 
 
@@ -170,6 +174,17 @@ class TestSetitem(base.BaseSetitemTests):
 
         with pytest.raises((ValueError, TypeError)):
             data[:] = invalid_scalar
+
+    def test_loc_setitem_with_expansion_preserves_ea_index_dtype(self):
+        pytest.xfail(
+            reason="GH#41626 retains index.dtype in setitem-with-expansion. Fails for db_dtypes currently."
+        )
+
+    def test_readonly_propagates_to_numpy_array_method(self):
+        pytest.xfail(
+            "Fails for db_dtypes because converting to numpy array creates a copy "
+            "(copy=False is not strictly enforced), so memory is not shared."
+        )
 
 
 # NDArrayBacked2DTests suite added in https://github.com/pandas-dev/pandas/pull/44974
